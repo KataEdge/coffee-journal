@@ -11,9 +11,77 @@ public struct CreateNoteView: View {
     public var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("カフェ情報")) {
-                    TextField("カフェ店舗名 (必須)", text: $viewModel.cafeName)
+                Section(header: Text("カフェ情報・位置")) {
+                    HStack {
+                        TextField("カフェ店舗名 (必須)", text: $viewModel.cafeName)
+                            .onChange(of: viewModel.cafeName) { _, _ in
+                                Task {
+                                    await viewModel.searchLocationCandidates()
+                                }
+                            }
+
+                        Button {
+                            Task {
+                                await viewModel.fetchCurrentLocation()
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "location.fill")
+                                Text("現在地")
+                            }
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 6)
+                            .background(Color.amberAccent.opacity(0.15))
+                            .foregroundColor(.amberAccent)
+                            .cornerRadius(8)
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    if !viewModel.locationSearchService.searchResults.isEmpty {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("検索候補")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.secondary)
+
+                            ForEach(viewModel.locationSearchService.searchResults.prefix(4)) { result in
+                                Button {
+                                    viewModel.selectSearchResult(result)
+                                } label: {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(result.title)
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.primary)
+                                        Text(result.subtitle)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                            .lineLimit(1)
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.vertical, 4)
+                                }
+                                .buttonStyle(.plain)
+                                Divider()
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+
                     TextField("住所 / エリア (任意)", text: $viewModel.address)
+
+                    if let lat = viewModel.latitude, let lon = viewModel.longitude {
+                        HStack(spacing: 6) {
+                            Image(systemName: "mappin.circle.fill")
+                                .foregroundColor(.amberAccent)
+                            Text("位置設定完了 (緯度: \(String(format: "%.4f", lat)), 経度: \(String(format: "%.4f", lon)))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
                 }
 
                 Section(header: Text("ドリンク情報")) {
@@ -130,6 +198,5 @@ struct TasteSlider: View {
 }
 
 #Preview {
-    CreateNoteView(repository: PreviewCoffeeRepository())
+    CreateNoteView(repository: PreviewCoffeeRepository.sample)
 }
-
