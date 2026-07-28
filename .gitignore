@@ -13,3 +13,5 @@ xcuserdata/
 # Secrets / Local Config
 *.env
 *.env.local
+Secrets.plist
+
