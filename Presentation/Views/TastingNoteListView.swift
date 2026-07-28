@@ -1,10 +1,12 @@
 import SwiftUI
 
 public struct TastingNoteListView: View {
+    private let repository: CoffeeRepositoryProtocol
     @State private var viewModel: TastingNoteListViewModel
     @State private var isShowingCreateSheet = false
 
     public init(repository: CoffeeRepositoryProtocol) {
+        self.repository = repository
         _viewModel = State(initialValue: TastingNoteListViewModel(repository: repository))
     }
 
@@ -12,20 +14,23 @@ public struct TastingNoteListView: View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
                 VStack(spacing: 0) {
-                    // Roast Level Filter Bar
+                    // Brew Method Filter Bar
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
-                            FilterChip(title: "すべて", isSelected: viewModel.selectedRoastFilter == nil) {
-                                viewModel.selectedRoastFilter = nil
+                            FilterChip(title: "すべて", isSelected: viewModel.selectedBrewMethodFilter == nil) {
+                                viewModel.selectedBrewMethodFilter = nil
                             }
-                            FilterChip(title: "浅煎り", isSelected: viewModel.selectedRoastFilter == "浅煎り") {
-                                viewModel.selectedRoastFilter = "浅煎り"
+                            FilterChip(title: "ハンドドリップ", isSelected: viewModel.selectedBrewMethodFilter == "ハンドドリップ") {
+                                viewModel.selectedBrewMethodFilter = "ハンドドリップ"
                             }
-                            FilterChip(title: "中煎り", isSelected: viewModel.selectedRoastFilter == "中煎り") {
-                                viewModel.selectedRoastFilter = "中煎り"
+                            FilterChip(title: "エスプレッソ・ラテ", isSelected: viewModel.selectedBrewMethodFilter == "エスプレッソ・ラテ") {
+                                viewModel.selectedBrewMethodFilter = "エスプレッソ・ラテ"
                             }
-                            FilterChip(title: "深煎り", isSelected: viewModel.selectedRoastFilter == "深煎り") {
-                                viewModel.selectedRoastFilter = "深煎り"
+                            FilterChip(title: "水出し", isSelected: viewModel.selectedBrewMethodFilter == "水出し") {
+                                viewModel.selectedBrewMethodFilter = "水出し"
+                            }
+                            FilterChip(title: "その他", isSelected: viewModel.selectedBrewMethodFilter == "その他") {
+                                viewModel.selectedBrewMethodFilter = "その他"
                             }
                         }
                         .padding(.horizontal)
@@ -38,13 +43,13 @@ public struct TastingNoteListView: View {
                             .frame(maxHeight: .infinity)
                     } else if viewModel.filteredNotes.isEmpty {
                         VStack(spacing: 12) {
-                            Image(systemName: "cup.and.saucer")
+                            Image(systemName: "building.2.crop.circle")
                                 .font(.system(size: 48))
                                 .foregroundColor(.secondary)
-                            Text("テイスティングノートがありません")
+                            Text("カフェ訪問記録がありません")
                                 .font(.headline)
                                 .foregroundColor(.secondary)
-                            Text("右下の + ボタンから記録を追加してみましょう")
+                            Text("右下の + ボタンから新しいカフェログを追加してみましょう")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -66,7 +71,7 @@ public struct TastingNoteListView: View {
                         }
                     }
                 }
-                .searchable(text: $viewModel.searchQuery, prompt: "豆の名前、焙煎所、フレーバーを検索")
+                .searchable(text: $viewModel.searchQuery, prompt: "カフェ名、場所、ドリンク名、メモを検索")
 
                 // Floating Action Button (FAB)
                 Button {
@@ -85,12 +90,12 @@ public struct TastingNoteListView: View {
                 }
                 .padding(24)
             }
-            .navigationTitle("Coffee Journal")
+            .navigationTitle("Cafe Journal")
             .task {
                 await viewModel.fetchNotes()
             }
             .sheet(isPresented: $isShowingCreateSheet) {
-                CreateNoteView(repository: PreviewCoffeeRepository())
+                CreateNoteView(repository: repository)
                     .onDisappear {
                         Task {
                             await viewModel.fetchNotes()
@@ -124,28 +129,7 @@ struct FilterChip: View {
 }
 
 #Preview {
-    let mockRepo = PreviewCoffeeRepository(notes: [
-        TastingNote(
-            userId: UUID(),
-            beanName: "エチオピア イルガチェフェ",
-            roaster: "Light Up Coffee",
-            origin: "エチオピア",
-            roastLevel: "浅煎り",
-            taste: TasteParameter(acidity: 5, sweetness: 4, bitterness: 2, body: 3, aroma: 5),
-            flavorNotes: ["フローラル", "シトラス"],
-            comment: "華やかな香りとフルーティーな酸味。"
-        ),
-        TastingNote(
-            userId: UUID(),
-            beanName: "マンデリン アチェ",
-            roaster: "Kuroneko Coffee",
-            origin: "インドネシア",
-            roastLevel: "深煎り",
-            taste: TasteParameter(acidity: 1, sweetness: 3, bitterness: 5, body: 5, aroma: 4),
-            flavorNotes: ["スパイス", "スモーキー", "アーモンド"],
-            comment: "重厚なコクとスパイシーな余韻。"
-        )
-    ])
-    return TastingNoteListView(repository: mockRepo)
+    let mockRepo = PreviewCoffeeRepository.sample
+    TastingNoteListView(repository: mockRepo)
 }
 

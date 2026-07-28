@@ -1,9 +1,9 @@
 import SwiftUI
 
 public struct TastingNoteCard: View {
-    public let note: TastingNote
+    public let note: CafeVisitNote
 
-    public init(note: TastingNote) {
+    public init(note: CafeVisitNote) {
         self.note = note
     }
 
@@ -11,25 +11,41 @@ public struct TastingNoteCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(note.beanName)
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
+                    HStack(spacing: 6) {
+                        Image(systemName: "building.2.crop.circle.fill")
+                            .foregroundColor(.amberAccent)
+                        Text(note.cafeName)
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                            .lineLimit(1)
+                    }
 
-                    if let roaster = note.roaster, !roaster.isEmpty {
-                        Text(roaster)
-                            .font(.subheadline)
+                    if let address = note.address, !address.isEmpty {
+                        Label(address, systemImage: "mappin.and.ellipse")
+                            .font(.caption)
                             .foregroundColor(.secondary)
+                            .lineLimit(1)
                     }
                 }
                 Spacer()
-                RoastLevelBadge(roastLevel: note.roastLevel)
+                Text(note.brewMethod)
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(Capsule().fill(Color.amberAccent.opacity(0.18)))
+                    .foregroundColor(.amberAccent)
             }
 
-            if let origin = note.origin, !origin.isEmpty {
-                Label(origin, systemImage: "globe")
-                    .font(.caption)
+            HStack(spacing: 6) {
+                Image(systemName: "cup.and.saucer.fill")
+                    .font(.subheadline)
                     .foregroundColor(.secondary)
+                Text(note.drinkName)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
             }
 
             HStack(spacing: 16) {
@@ -65,15 +81,18 @@ public struct TastingNoteCard: View {
 
 #Preview {
     TastingNoteCard(
-        note: TastingNote(
+        note: CafeVisitNote(
             userId: UUID(),
-            beanName: "エチオピア イルガチェフェ",
+            cafeName: "Blue Bottle Coffee 清澄白河",
+            address: "東京都江東区平野1-4-8",
+            drinkName: "シングルオリジン ハンドドリップ",
+            brewMethod: "ハンドドリップ",
             roaster: "Blue Bottle Coffee",
-            origin: "エチオピア シダモ",
+            origin: "エチオピア",
             roastLevel: "浅煎り",
             taste: TasteParameter(acidity: 5, sweetness: 4, bitterness: 2, body: 3, aroma: 5),
             flavorNotes: ["フローラル", "ジャスミン", "シトラス"],
-            comment: "とても華やかな香りで、すっきりとした酸味が心地よい。"
+            comment: "天井が高く開放的な空間。淹れたてのハンドドリップはジャスミンのような香りが際立つ。"
         )
     )
     .padding()

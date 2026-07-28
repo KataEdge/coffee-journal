@@ -1,40 +1,73 @@
 import SwiftUI
 
 public struct TastingNoteDetailView: View {
-    public let note: TastingNote
+    public let note: CafeVisitNote
 
-    public init(note: TastingNote) {
+    public init(note: CafeVisitNote) {
         self.note = note
     }
 
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                // Header section
-                VStack(alignment: .leading, spacing: 8) {
+                // Header section (Cafe info & Drink info)
+                VStack(alignment: .leading, spacing: 10) {
                     HStack {
-                        RoastLevelBadge(roastLevel: note.roastLevel)
+                        Text(note.brewMethod)
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(Capsule().fill(Color.amberAccent.opacity(0.18)))
+                            .foregroundColor(.amberAccent)
+
                         Spacer()
+
                         Text(note.createdAt.formatted(date: .numeric, time: .omitted))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
 
-                    Text(note.beanName)
+                    Text(note.cafeName)
                         .font(.largeTitle)
                         .fontWeight(.heavy)
                         .foregroundColor(.primary)
 
-                    if let roaster = note.roaster {
-                        Text(roaster)
-                            .font(.title3)
+                    if let address = note.address, !address.isEmpty {
+                        Label(address, systemImage: "mappin.and.ellipse")
+                            .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
 
-                    if let origin = note.origin {
-                        Label(origin, systemImage: "globe")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                    HStack(spacing: 8) {
+                        Image(systemName: "cup.and.saucer.fill")
+                            .foregroundColor(.amberAccent)
+                        Text(note.drinkName)
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                    }
+                    .padding(.top, 4)
+
+                    if note.roaster != nil || note.origin != nil || note.roastLevel != nil {
+                        HStack(spacing: 12) {
+                            if let roaster = note.roaster, !roaster.isEmpty {
+                                Label(roaster, systemImage: "building.2")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            if let origin = note.origin, !origin.isEmpty {
+                                Label(origin, systemImage: "globe")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            if let roastLevel = note.roastLevel, !roastLevel.isEmpty {
+                                Label(roastLevel, systemImage: "flame")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding(.top, 2)
                     }
                 }
                 .padding(.horizontal)
@@ -82,7 +115,7 @@ public struct TastingNoteDetailView: View {
                 // Comments
                 if let comment = note.comment, !comment.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("テイスティングメモ")
+                        Text("カフェメモ・感想")
                             .font(.headline)
                             .foregroundColor(.primary)
 
@@ -101,7 +134,7 @@ public struct TastingNoteDetailView: View {
             }
             .padding(.vertical)
         }
-        .navigationTitle("ノート詳細")
+        .navigationTitle("カフェログ詳細")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
@@ -130,15 +163,18 @@ struct TasteScoreItem: View {
 #Preview {
     NavigationStack {
         TastingNoteDetailView(
-            note: TastingNote(
+            note: CafeVisitNote(
                 userId: UUID(),
-                beanName: "エチオピア イルガチェフェ G1",
-                roaster: "Coffee Roasters Tokyo",
+                cafeName: "Blue Bottle Coffee 清澄白河",
+                address: "東京都江東区平野1-4-8",
+                drinkName: "シングルオリジン ハンドドリップ",
+                brewMethod: "ハンドドリップ",
+                roaster: "Blue Bottle Coffee",
                 origin: "エチオピア",
-                roastLevel: "浅煎り (Light)",
+                roastLevel: "浅煎り",
                 taste: TasteParameter(acidity: 5, sweetness: 4, bitterness: 2, body: 3, aroma: 5),
                 flavorNotes: ["フローラル", "ジャスミン", "シトラス", "レモン"],
-                comment: "フローラルで華やかな香りと、澄んだ果実味が特徴的。冷めるとよりレモンのような甘酸っぱさが際立つ。"
+                comment: "天井が高く開放的な空間。淹れたてのハンドドリップはジャスミンのような香りと果実味が際立つ。"
             )
         )
     }

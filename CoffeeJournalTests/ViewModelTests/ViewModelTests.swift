@@ -3,23 +3,26 @@ import XCTest
 
 final class ViewModelTests: XCTestCase {
     func testTastingNoteListViewModelFiltering() async {
-        let note1 = TastingNote(
+        let note1 = CafeVisitNote(
             userId: UUID(),
-            beanName: "Ethiopia Yirgacheffe",
+            cafeName: "Blue Bottle Coffee 清澄白河",
+            address: "東京都江東区平野1-4-8",
+            drinkName: "ハンドドリップ エチオピア",
+            brewMethod: "ハンドドリップ",
             roaster: "Blue Bottle",
             origin: "Ethiopia",
-            roastLevel: "浅煎り",
             taste: TasteParameter(acidity: 5, sweetness: 4, bitterness: 2, body: 3, aroma: 5),
             flavorNotes: ["Floral", "Citrus"]
         )
 
-        let note2 = TastingNote(
+        let note2 = CafeVisitNote(
             userId: UUID(),
-            beanName: "Mandheling Sumatra",
-            roaster: "Obscura Coffee",
-            origin: "Indonesia",
-            roastLevel: "深煎り",
-            taste: TasteParameter(acidity: 1, sweetness: 2, bitterness: 5, body: 5, aroma: 3),
+            cafeName: "STREAMER COFFEE COMPANY 渋谷",
+            address: "東京都渋谷区渋谷1-20-28",
+            drinkName: "ストリーマーラテ",
+            brewMethod: "エスプレッソ・ラテ",
+            roaster: "STREAMER COFFEE",
+            taste: TasteParameter(acidity: 1, sweetness: 4, bitterness: 4, body: 5, aroma: 4),
             flavorNotes: ["Spicy", "Dark Chocolate"]
         )
 
@@ -30,29 +33,30 @@ final class ViewModelTests: XCTestCase {
         XCTAssertEqual(vm.notes.count, 2)
         XCTAssertEqual(vm.filteredNotes.count, 2)
 
-        // Test Search Filter
-        vm.searchQuery = "Ethiopia"
+        // Test Search Filter (by Cafe name)
+        vm.searchQuery = "Blue Bottle"
         XCTAssertEqual(vm.filteredNotes.count, 1)
-        XCTAssertEqual(vm.filteredNotes.first?.beanName, "Ethiopia Yirgacheffe")
+        XCTAssertEqual(vm.filteredNotes.first?.cafeName, "Blue Bottle Coffee 清澄白河")
 
-        // Test Roast Filter
+        // Test Brew Method Filter
         vm.searchQuery = ""
-        vm.selectedRoastFilter = "深煎り"
+        vm.selectedBrewMethodFilter = "エスプレッソ・ラテ"
         XCTAssertEqual(vm.filteredNotes.count, 1)
-        XCTAssertEqual(vm.filteredNotes.first?.beanName, "Mandheling Sumatra")
+        XCTAssertEqual(vm.filteredNotes.first?.drinkName, "ストリーマーラテ")
     }
 
     func testCreateNoteViewModelValidationAndSave() async {
         let repo = MockCoffeeRepository()
         let vm = CreateNoteViewModel(repository: repo)
 
-        // Invalid initially
+        // Invalid initially (requires cafeName and drinkName)
         XCTAssertFalse(vm.isValid)
 
-        // Set valid name
-        vm.beanName = "Guatemala Antigua"
-        vm.roaster = "Single O"
-        vm.roastLevel = "中煎り"
+        // Set valid cafe and drink
+        vm.cafeName = "Fuglen Tokyo"
+        vm.address = "渋谷区富ヶ谷"
+        vm.drinkName = "エアロプレス ケニア"
+        vm.brewMethod = "ハンドドリップ"
         vm.toggleFlavorTag("Nutty")
         XCTAssertTrue(vm.isValid)
 
@@ -61,7 +65,8 @@ final class ViewModelTests: XCTestCase {
 
         let savedNotes = try? await repo.fetchTastingNotes()
         XCTAssertEqual(savedNotes?.count, 1)
-        XCTAssertEqual(savedNotes?.first?.beanName, "Guatemala Antigua")
+        XCTAssertEqual(savedNotes?.first?.cafeName, "Fuglen Tokyo")
+        XCTAssertEqual(savedNotes?.first?.drinkName, "エアロプレス ケニア")
         XCTAssertTrue(savedNotes?.first?.flavorNotes.contains("Nutty") ?? false)
     }
 }

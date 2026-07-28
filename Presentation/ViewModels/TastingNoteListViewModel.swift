@@ -3,9 +3,9 @@ import Observation
 
 @Observable
 public final class TastingNoteListViewModel {
-    public var notes: [TastingNote] = []
+    public var notes: [CafeVisitNote] = []
     public var searchQuery: String = ""
-    public var selectedRoastFilter: String? = nil
+    public var selectedBrewMethodFilter: String? = nil
     public var isLoading: Bool = false
     public var errorMessage: String? = nil
 
@@ -15,18 +15,21 @@ public final class TastingNoteListViewModel {
         self.repository = repository
     }
 
-    public var filteredNotes: [TastingNote] {
+    public var filteredNotes: [CafeVisitNote] {
         notes.filter { note in
             let matchesSearch = searchQuery.isEmpty ||
-                note.beanName.localizedCaseInsensitiveContains(searchQuery) ||
+                note.cafeName.localizedCaseInsensitiveContains(searchQuery) ||
+                (note.address?.localizedCaseInsensitiveContains(searchQuery) ?? false) ||
+                note.drinkName.localizedCaseInsensitiveContains(searchQuery) ||
                 (note.roaster?.localizedCaseInsensitiveContains(searchQuery) ?? false) ||
                 (note.origin?.localizedCaseInsensitiveContains(searchQuery) ?? false) ||
+                (note.comment?.localizedCaseInsensitiveContains(searchQuery) ?? false) ||
                 note.flavorNotes.contains(where: { $0.localizedCaseInsensitiveContains(searchQuery) })
 
-            let matchesRoast = selectedRoastFilter == nil ||
-                (note.roastLevel?.localizedCaseInsensitiveContains(selectedRoastFilter!) ?? false)
+            let matchesBrewMethod = selectedBrewMethodFilter == nil ||
+                note.brewMethod.localizedCaseInsensitiveContains(selectedBrewMethodFilter!)
 
-            return matchesSearch && matchesRoast
+            return matchesSearch && matchesBrewMethod
         }
     }
 

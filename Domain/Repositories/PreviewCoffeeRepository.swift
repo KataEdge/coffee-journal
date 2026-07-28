@@ -1,78 +1,90 @@
 import Foundation
 
 public final class PreviewCoffeeRepository: CoffeeRepositoryProtocol, @unchecked Sendable {
-    public var notes: [TastingNote] = []
+    public var notes: [CafeVisitNote] = []
 
-    public init(notes: [TastingNote] = []) {
+    public init(notes: [CafeVisitNote] = []) {
         self.notes = notes
     }
 
     public static var sample: PreviewCoffeeRepository {
         let sampleNotes = [
-            TastingNote(
+            CafeVisitNote(
                 id: UUID(),
                 userId: UUID(),
-                cafeId: nil,
-                beanName: "イルガチェフェ G1 ナチュラル",
-                roaster: "FUJIYAMA COFFEE ROASTERS",
+                cafeName: "Blue Bottle Coffee 清澄白河フラッグシップカフェ",
+                address: "東京都江東区平野1-4-8",
+                latitude: 35.6811,
+                longitude: 139.7997,
+                drinkName: "シングルオリジン ハンドドリップ",
+                brewMethod: "ハンドドリップ",
+                roaster: "Blue Bottle Coffee",
                 origin: "エチオピア",
                 roastLevel: "浅煎り",
                 taste: TasteParameter(acidity: 5, sweetness: 4, bitterness: 2, body: 3, aroma: 5),
-                flavorNotes: ["フローラル", "ジャスミン", "シトラス", "ベリー"],
+                flavorNotes: ["ジャスミン", "シトラス", "ベリー"],
                 imageUrls: [],
-                comment: "華やかなジャスミンのアロマとイチゴのような爽やかな甘酸っぱさが広がる素晴らしい浅煎りコーヒー。",
+                comment: "天井が高く開放的な空間。淹れたてのハンドドリップはジャスミンのような香りと果実味が際立つ。",
                 createdAt: Date()
             ),
-            TastingNote(
+            CafeVisitNote(
                 id: UUID(),
                 userId: UUID(),
-                cafeId: nil,
-                beanName: "マンデリン アチェ ベラト カトウ",
-                roaster: "LIGHT UP COFFEE",
-                origin: "インドネシア",
+                cafeName: "STREAMER COFFEE COMPANY 渋谷",
+                address: "東京都渋谷区渋谷1-20-28",
+                latitude: 35.6617,
+                longitude: 139.7028,
+                drinkName: "ストリーマーラテ",
+                brewMethod: "エスプレッソ・ラテ",
+                roaster: "STREAMER COFFEE",
+                origin: "ブレンド",
                 roastLevel: "深煎り",
-                taste: TasteParameter(acidity: 2, sweetness: 3, bitterness: 5, body: 5, aroma: 4),
-                flavorNotes: ["スパイス", "スモーキー", "チョコレート"],
+                taste: TasteParameter(acidity: 1, sweetness: 4, bitterness: 4, body: 5, aroma: 4),
+                flavorNotes: ["ダークチョコレート", "キャラメル", "アーモンド"],
                 imageUrls: [],
-                comment: "重厚なコクとハーブのような深いスパイシーさ。ミルクとの相性も抜群の深煎り。",
+                comment: "繊細なフリーポア・ラテアートが素晴らしい。濃厚なミルクの甘みと深煎りエスプレッソの重厚なコク。",
                 createdAt: Date().addingTimeInterval(-86400)
             ),
-            TastingNote(
+            CafeVisitNote(
                 id: UUID(),
                 userId: UUID(),
-                cafeId: nil,
-                beanName: "エル・パライソ 農園",
-                roaster: "KOTO COFFEE",
-                origin: "コロンビア",
-                roastLevel: "中煎り",
+                cafeName: "FUGLEN TOKYO (フグレン トウキョウ)",
+                address: "東京都渋谷区富ヶ谷1-16-11",
+                latitude: 35.6685,
+                longitude: 139.6914,
+                drinkName: "エアロプレス ケニア",
+                brewMethod: "ハンドドリップ",
+                roaster: "Fuglen Coffee Roasters",
+                origin: "ケニア",
+                roastLevel: "浅煎り",
                 taste: TasteParameter(acidity: 4, sweetness: 5, bitterness: 2, body: 4, aroma: 5),
-                flavorNotes: ["ライチ", "ピーチ", "カラメル"],
+                flavorNotes: ["カシス", "ブラックベリー", "カカオ"],
                 imageUrls: [],
-                comment: "アナエロビック発酵によるライチやピーチのような強烈なフルーツアロマとジューシーな甘み。",
+                comment: "北欧ヴィンテージのインテリアが落ち着く空間。明るい酸味とすっきりした甘さが特徴的。",
                 createdAt: Date().addingTimeInterval(-172800)
             )
         ]
         return PreviewCoffeeRepository(notes: sampleNotes)
     }
 
-    public func fetchTastingNotes() async throws -> [TastingNote] {
+    public func fetchTastingNotes() async throws -> [CafeVisitNote] {
         return notes
     }
 
-    public func fetchTastingNotes(for userId: UUID) async throws -> [TastingNote] {
+    public func fetchTastingNotes(for userId: UUID) async throws -> [CafeVisitNote] {
         return notes.filter { $0.userId == userId }
     }
 
-    public func fetchTastingNote(by id: UUID) async throws -> TastingNote? {
+    public func fetchTastingNote(by id: UUID) async throws -> CafeVisitNote? {
         return notes.first { $0.id == id }
     }
 
-    public func createTastingNote(_ note: TastingNote) async throws -> TastingNote {
+    public func createTastingNote(_ note: CafeVisitNote) async throws -> CafeVisitNote {
         notes.append(note)
         return note
     }
 
-    public func updateTastingNote(_ note: TastingNote) async throws -> TastingNote {
+    public func updateTastingNote(_ note: CafeVisitNote) async throws -> CafeVisitNote {
         if let index = notes.firstIndex(where: { $0.id == note.id }) {
             notes[index] = note
             return note
