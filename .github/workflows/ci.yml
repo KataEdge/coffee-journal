@@ -1,0 +1,42 @@
+name: iOS CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Run SwiftLint
+        run: |
+          if which swiftlint >/dev/null; then
+            swiftlint
+          else
+            echo "SwiftLint not installed on runner, skipping or install via brew"
+          fi
+
+      - name: Build & Test (SwiftPM / xcodebuild)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -f "Package.swift" ]; then
+            swift test
+          elif ls *.xcodeproj 1> /dev/null 2>&1; then
+            xcodebuild test \
+              -scheme CoffeeJournal \
+              -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=latest' \
+              CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+          else
+            echo "No package or xcodeproj found yet."
+          fi

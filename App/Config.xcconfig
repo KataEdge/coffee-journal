@@ -1,0 +1,4 @@
+// Configuration settings for Supabase and AWS S3
+SUPABASE_URL = https:/$()/your-supabase-project.supabase.co
+SUPABASE_ANON_KEY = your-supabase-anon-key
+AWS_S3_BUCKET_NAME = coffee-journal-media

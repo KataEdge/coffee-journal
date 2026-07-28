@@ -1,0 +1,15 @@
+# Xcode & SwiftPM Build Artifacts
+.build/
+.swiftpm/
+DerivedData/
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+
+# OS / IDE
+.DS_Store
+.vscode/
+
+# Secrets / Local Config
+*.env
+*.env.local
