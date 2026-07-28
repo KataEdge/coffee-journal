@@ -30,7 +30,8 @@ let package = Package(
             path: ".",
             exclude: [
                 "App",
-                "CoffeeJournalTests"
+                "CoffeeJournalTests",
+                "Secrets.sample.plist"
             ],
             sources: [
                 "Domain",
