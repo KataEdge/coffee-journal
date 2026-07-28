@@ -146,6 +146,6 @@ struct FilterChip: View {
             comment: "重厚なコクとスパイシーな余韻。"
         )
     ])
-    TastingNoteListView(repository: mockRepo)
+    return TastingNoteListView(repository: mockRepo)
 }
 

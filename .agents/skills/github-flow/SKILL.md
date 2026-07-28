@@ -1,3 +1,8 @@
+---
+name: github-flow
+description: GitHub Flow branching strategy, topic branch rules, local test verification, and PR workflow for CoffeeJournal.
+---
+
 # GitHub Flow Guidelines
 
 ## Principles

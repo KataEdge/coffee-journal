@@ -1,3 +1,8 @@
+---
+name: supabase-schema
+description: Supabase database table definitions, RLS security policies, and Swift Codable mapping guidelines for CoffeeJournal.
+---
+
 # Supabase Database Schema & RLS Policy Guidelines
 
 ## Tables Overview
