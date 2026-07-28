@@ -1,0 +1,17 @@
+# Gitleaks Configuration for CoffeeJournal
+# https://github.com/gitleaks/gitleaks
+
+title = "CoffeeJournal Secret Scanning Rules"
+
+[allowlist]
+description = "Allowlist for sample configuration files and placeholder values"
+files = [
+    '''Secrets\.sample\.plist$''',
+    '''\.sample\.''',
+    '''\.env\.example$'''
+]
+regexes = [
+    '''YOUR_SUPABASE_PROJECT_ID''',
+    '''YOUR_SUPABASE_ANON_KEY''',
+    '''https://YOUR_SUPABASE_PROJECT_ID\.supabase\.co'''
+]

@@ -31,7 +31,9 @@ let package = Package(
             exclude: [
                 "App",
                 "CoffeeJournalTests",
-                "Secrets.sample.plist"
+                "Secrets.sample.plist",
+                "scripts",
+                ".githooks"
             ],
             sources: [
                 "Domain",

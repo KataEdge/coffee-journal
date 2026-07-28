@@ -8,4 +8,6 @@
 ## Token Optimization & Efficiency
 - **Subagent Delegation**: Delegate broad codebase searches, extensive file reading, and investigation tasks to the `research` subagent to prevent bloating the main conversation context.
 - **Efficient Log Extraction**: When inspecting command outputs or build failures, filter and extract only the relevant error lines and stack traces rather than outputting large log files into the conversation.
-
+## Secret Management & Security Policy
+- **Credential Protection**: Never commit API keys, passwords, or tokens. Keep secret credentials in unversioned local files (`Secrets.plist`, `.env.local`).
+- **Gitleaks Scanning**: Maintain `.gitleaks.toml` rules and verify local/CI secret scanning passes before pushing PRs.

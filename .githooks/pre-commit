@@ -1,0 +1,15 @@
+#!/bin/sh
+# Pre-commit hook to scan staged files for secrets using gitleaks
+
+if command -v gitleaks >/dev/null 2>&1; then
+    echo "🔒 Running Gitleaks secret scan on staged files..."
+    gitleaks protect --staged --verbose
+    if [ $? -ne 0 ]; then
+        echo "❌ Gitleaks detected sensitive credentials in staged files!"
+        echo "Please remove secrets/passwords or update .gitleaks.toml allowlist before committing."
+        exit 1
+    fi
+    echo "✅ Gitleaks check passed."
+else
+    echo "⚠️  gitleaks is not installed locally. Install via 'brew install gitleaks' to enable local pre-commit secret scanning."
+fi
