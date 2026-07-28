@@ -19,7 +19,8 @@ let package = Package(
             name: "CoffeeJournalCore",
             path: ".",
             exclude: [
-                "App"
+                "App",
+                "CoffeeJournalTests"
             ],
             sources: [
                 "Domain",
@@ -30,12 +31,7 @@ let package = Package(
         .testTarget(
             name: "CoffeeJournalTests",
             dependencies: ["CoffeeJournalCore"],
-            path: "CoffeeJournalTests",
-            sources: [
-                "Mocks",
-                "UseCaseTests",
-                "ViewModelTests"
-            ]
+            path: "CoffeeJournalTests"
         ),
     ]
 )
