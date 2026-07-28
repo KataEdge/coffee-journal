@@ -129,7 +129,6 @@ struct FilterChip: View {
 }
 
 #Preview {
-    let mockRepo = PreviewCoffeeRepository.sample
-    TastingNoteListView(repository: mockRepo)
+    TastingNoteListView(repository: PreviewCoffeeRepository.sample)
 }
 
