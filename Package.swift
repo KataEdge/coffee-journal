@@ -17,10 +17,16 @@ let package = Package(
             targets: ["CoffeeJournalApp"]
         )
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/supabase/supabase-swift.git", exact: "2.24.0"),
+        .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", exact: "1.4.2")
+    ],
     targets: [
         .target(
             name: "CoffeeJournalCore",
+            dependencies: [
+                .product(name: "Supabase", package: "supabase-swift")
+            ],
             path: ".",
             exclude: [
                 "App",
@@ -29,7 +35,8 @@ let package = Package(
             sources: [
                 "Domain",
                 "Presentation",
-                "Core"
+                "Core",
+                "Data"
             ]
         ),
         .executableTarget(
