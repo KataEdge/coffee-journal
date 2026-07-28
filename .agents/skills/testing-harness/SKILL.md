@@ -1,3 +1,8 @@
+---
+name: testing-harness
+description: Unit testing principles, async/await XCTest execution, and protocol mock creation rules for CoffeeJournal.
+---
+
 # Testing Harness Guidelines
 
 ## Unit Testing Principles

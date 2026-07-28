@@ -1,3 +1,8 @@
+---
+name: swiftui-guidelines
+description: SwiftUI design, state management with @Observable (iOS 17+), typography, component structure, and preview guidelines for CoffeeJournal.
+---
+
 # SwiftUI Guidelines (iOS 17+)
 
 ## Architecture & State Management

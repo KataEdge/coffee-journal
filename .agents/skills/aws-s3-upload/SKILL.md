@@ -1,3 +1,8 @@
+---
+name: aws-s3-upload
+description: Guidelines and best practices for uploading image files directly to AWS S3 using presigned URLs in CoffeeJournal.
+---
+
 # AWS S3 Direct Upload via Presigned URL
 
 ## Upload Strategy
