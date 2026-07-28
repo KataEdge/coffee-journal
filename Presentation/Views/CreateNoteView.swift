@@ -11,12 +11,26 @@ public struct CreateNoteView: View {
     public var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("基本情報")) {
-                    TextField("コーヒー豆の名称 (必須)", text: $viewModel.beanName)
+                Section(header: Text("カフェ情報")) {
+                    TextField("カフェ店舗名 (必須)", text: $viewModel.cafeName)
+                    TextField("住所 / エリア (任意)", text: $viewModel.address)
+                }
+
+                Section(header: Text("ドリンク情報")) {
+                    TextField("ドリンク名 / メニュー名 (必須)", text: $viewModel.drinkName)
+                    Picker("抽出方法", selection: $viewModel.brewMethod) {
+                        ForEach(viewModel.availableBrewMethods, id: \.self) { method in
+                            Text(method).tag(method)
+                        }
+                    }
+                }
+
+                Section(header: Text("豆の詳細 (任意)")) {
                     TextField("ロースター / 焙煎所", text: $viewModel.roaster)
                     TextField("生産国 / 原産地", text: $viewModel.origin)
 
                     Picker("焙煎度", selection: $viewModel.roastLevel) {
+                        Text("指定なし").tag("")
                         Text("浅煎り (Light)").tag("浅煎り")
                         Text("中煎り (Medium)").tag("中煎り")
                         Text("深煎り (Dark)").tag("深煎り")
@@ -54,7 +68,7 @@ public struct CreateNoteView: View {
                     .padding(.vertical, 4)
                 }
 
-                Section(header: Text("テイスティングメモ")) {
+                Section(header: Text("カフェメモ・感想")) {
                     TextEditor(text: $viewModel.comment)
                         .frame(minHeight: 100)
                 }
@@ -67,7 +81,7 @@ public struct CreateNoteView: View {
                     }
                 }
             }
-            .navigationTitle("ノートを作成")
+            .navigationTitle("カフェログを記録")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif

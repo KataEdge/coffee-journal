@@ -3,7 +3,10 @@ import Observation
 
 @Observable
 public final class CreateNoteViewModel {
-    public var beanName: String = ""
+    public var cafeName: String = ""
+    public var address: String = ""
+    public var drinkName: String = ""
+    public var brewMethod: String = "ハンドドリップ"
     public var roaster: String = ""
     public var origin: String = ""
     public var roastLevel: String = "中煎り"
@@ -17,9 +20,13 @@ public final class CreateNoteViewModel {
     public var isSaving: Bool = false
     public var errorMessage: String? = nil
 
+    public let availableBrewMethods = [
+        "ハンドドリップ", "エスプレッソ・ラテ", "水出し", "その他"
+    ]
+
     public let availableFlavorTags = [
         "フローラル", "ジャスミン", "シトラス", "ベリー", "リンゴ",
-        "ナッツ", "アーモンド", "チョコレート", "カラメル", "スパイス", "スモーキー"
+        "ナッツ", "アーモンド", "チョコレート", "キャラメル", "スパイス", "スモーキー"
     ]
 
     private let repository: CoffeeRepositoryProtocol
@@ -31,7 +38,8 @@ public final class CreateNoteViewModel {
     }
 
     public var isValid: Bool {
-        !beanName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !cafeName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !drinkName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     public func toggleFlavorTag(_ tag: String) {
@@ -45,7 +53,7 @@ public final class CreateNoteViewModel {
     @MainActor
     public func saveNote() async -> Bool {
         guard isValid else {
-            errorMessage = "コーヒー豆の名前を入力してください。"
+            errorMessage = "カフェ店名とドリンク名を入力してください。"
             return false
         }
 
@@ -60,12 +68,15 @@ public final class CreateNoteViewModel {
             aroma: aroma
         )
 
-        let note = TastingNote(
+        let note = CafeVisitNote(
             userId: userId,
-            beanName: beanName.trimmingCharacters(in: .whitespacesAndNewlines),
+            cafeName: cafeName.trimmingCharacters(in: .whitespacesAndNewlines),
+            address: address.isEmpty ? nil : address.trimmingCharacters(in: .whitespacesAndNewlines),
+            drinkName: drinkName.trimmingCharacters(in: .whitespacesAndNewlines),
+            brewMethod: brewMethod,
             roaster: roaster.isEmpty ? nil : roaster.trimmingCharacters(in: .whitespacesAndNewlines),
             origin: origin.isEmpty ? nil : origin.trimmingCharacters(in: .whitespacesAndNewlines),
-            roastLevel: roastLevel,
+            roastLevel: roastLevel.isEmpty ? nil : roastLevel,
             taste: taste,
             flavorNotes: Array(selectedFlavorTags),
             comment: comment.isEmpty ? nil : comment.trimmingCharacters(in: .whitespacesAndNewlines)

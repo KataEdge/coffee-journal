@@ -13,15 +13,19 @@ final class TastingNoteTests: XCTestCase {
 
     func testMockCoffeeRepositoryCreateAndFetch() async throws {
         let repo = MockCoffeeRepository()
-        let note = TastingNote(
+        let note = CafeVisitNote(
             userId: UUID(),
-            beanName: "Ethiopia Yirgacheffe",
-            roaster: "Coffee Roasters",
+            cafeName: "Blue Bottle Coffee 清澄白河",
+            address: "東京都江東区平野1-4-8",
+            drinkName: "シングルオリジン ハンドドリップ",
+            brewMethod: "ハンドドリップ",
+            roaster: "Blue Bottle Coffee",
             taste: TasteParameter(acidity: 5, sweetness: 4, bitterness: 2, body: 3, aroma: 5)
         )
 
         let created = try await repo.createTastingNote(note)
-        XCTAssertEqual(created.beanName, "Ethiopia Yirgacheffe")
+        XCTAssertEqual(created.cafeName, "Blue Bottle Coffee 清澄白河")
+        XCTAssertEqual(created.drinkName, "シングルオリジン ハンドドリップ")
 
         let notes = try await repo.fetchTastingNotes()
         XCTAssertEqual(notes.count, 1)
