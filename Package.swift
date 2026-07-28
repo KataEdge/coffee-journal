@@ -12,6 +12,10 @@ let package = Package(
             name: "CoffeeJournalCore",
             targets: ["CoffeeJournalCore"]
         ),
+        .executable(
+            name: "CoffeeJournalApp",
+            targets: ["CoffeeJournalApp"]
+        )
     ],
     dependencies: [],
     targets: [
@@ -27,6 +31,11 @@ let package = Package(
                 "Presentation",
                 "Core"
             ]
+        ),
+        .executableTarget(
+            name: "CoffeeJournalApp",
+            dependencies: ["CoffeeJournalCore"],
+            path: "App"
         ),
         .testTarget(
             name: "CoffeeJournalTests",
