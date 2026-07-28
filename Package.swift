@@ -18,7 +18,8 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/supabase/supabase-swift.git", exact: "2.24.0")
+        .package(url: "https://github.com/supabase/supabase-swift.git", exact: "2.24.0"),
+        .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", exact: "1.4.2")
     ],
     targets: [
         .target(
