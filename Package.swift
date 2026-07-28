@@ -23,6 +23,7 @@ let package = Package(
             ],
             sources: [
                 "Domain",
+                "Presentation",
                 "Core"
             ]
         ),
@@ -32,7 +33,8 @@ let package = Package(
             path: "CoffeeJournalTests",
             sources: [
                 "Mocks",
-                "UseCaseTests"
+                "UseCaseTests",
+                "ViewModelTests"
             ]
         ),
     ]
