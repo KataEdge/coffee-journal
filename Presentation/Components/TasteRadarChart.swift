@@ -128,10 +128,6 @@ public struct TasteRadarChart: View {
     }
 }
 
-public extension Color {
-    static let amberAccent = Color(red: 0.85, green: 0.55, blue: 0.25)
-}
-
 #Preview {
     TasteRadarChart(taste: TasteParameter(acidity: 4, sweetness: 3, bitterness: 2, body: 4, aroma: 5))
         .padding()
