@@ -25,6 +25,9 @@ jobs:
     name: Build & Test
     runs-on: macos-14
     needs: [gitleaks-security-scan]
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout Code
@@ -46,19 +49,86 @@ jobs:
             echo "SwiftLint not installed on runner, skipping or install via brew"
           fi
 
-      - name: Build & Test (SwiftPM / xcodebuild)
+      - name: Build & Test with Coverage Gate
+        id: build_test
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
+          set +e
           if [ -f "Package.swift" ]; then
-            swift test
+            ./scripts/check-coverage.sh > coverage_output.txt 2>&1
+            COVERAGE_EXIT_CODE=$?
           elif ls *.xcodeproj 1> /dev/null 2>&1; then
             xcodebuild test \
               -scheme CoffeeJournal \
               -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=latest' \
-              CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+              CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO > coverage_output.txt 2>&1
+            COVERAGE_EXIT_CODE=$?
+            echo "(Coverage gate not enforced on xcodebuild path — SPM only.)" >> coverage_output.txt
           else
-            echo "No package or xcodeproj found yet."
+            echo "No package or xcodeproj found yet." > coverage_output.txt
+            COVERAGE_EXIT_CODE=0
           fi
+          set -e
+          cat coverage_output.txt
+
+          PERCENT=$(grep "Coverage Rate" coverage_output.txt | grep -oE '[0-9]+\.[0-9]+' | head -n1)
+          REQUIRED=$(grep "Required Rate" coverage_output.txt | grep -oE '[0-9]+\.[0-9]+' | head -n1)
+          COVERED_TOTAL=$(grep "Covered Lines" coverage_output.txt | sed -E 's/^[[:space:]]*Covered Lines[[:space:]]*: //')
+
+          {
+            echo "percent=${PERCENT:-N/A}"
+            echo "required=${REQUIRED:-N/A}"
+            echo "covered_total=${COVERED_TOTAL:-N/A}"
+            echo "exit_code=$COVERAGE_EXIT_CODE"
+          } >> "$GITHUB_OUTPUT"
+
+          exit "$COVERAGE_EXIT_CODE"
+
+      - name: Comment Coverage on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const percent = '${{ steps.build_test.outputs.percent }}';
+            const required = '${{ steps.build_test.outputs.required }}';
+            const coveredTotal = '${{ steps.build_test.outputs.covered_total }}';
+            const passed = '${{ steps.build_test.outputs.exit_code }}' === '0';
+            const marker = '<!-- coverage-report -->';
+
+            const body = [
+              marker,
+              '### 🧪 Business Logic Test Coverage',
+              '',
+              '| Metric | Value |',
+              '|---|---|',
+              `| Coverage | **${percent}%** |`,
+              `| Lines Covered | ${coveredTotal} |`,
+              `| Required | ${required}% |`,
+              `| Status | ${passed ? '✅ Passed' : '❌ Failed — PR is blocked until coverage is >= ' + required + '%'} |`,
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
 
