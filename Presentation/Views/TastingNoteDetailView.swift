@@ -1,10 +1,25 @@
 import SwiftUI
 
 public struct TastingNoteDetailView: View {
-    public let note: CafeVisitNote
+    @State private var note: CafeVisitNote
+    @State private var isShowingEditSheet = false
+    @State private var isShowingDeleteConfirm = false
+    @Environment(\.dismiss) private var dismiss
 
-    public init(note: CafeVisitNote) {
-        self.note = note
+    private let repository: CoffeeRepositoryProtocol
+    private let onNoteUpdated: (CafeVisitNote) -> Void
+    private let onNoteDeleted: (UUID) -> Void
+
+    public init(
+        note: CafeVisitNote,
+        repository: CoffeeRepositoryProtocol,
+        onNoteUpdated: @escaping (CafeVisitNote) -> Void = { _ in },
+        onNoteDeleted: @escaping (UUID) -> Void = { _ in }
+    ) {
+        _note = State(initialValue: note)
+        self.repository = repository
+        self.onNoteUpdated = onNoteUpdated
+        self.onNoteDeleted = onNoteDeleted
     }
 
     public var body: some View {
@@ -138,6 +153,42 @@ public struct TastingNoteDetailView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    isShowingEditSheet = true
+                } label: {
+                    Image(systemName: "pencil")
+                }
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button(role: .destructive) {
+                    isShowingDeleteConfirm = true
+                } label: {
+                    Image(systemName: "trash")
+                }
+            }
+        }
+        .sheet(isPresented: $isShowingEditSheet) {
+            CreateNoteView(repository: repository, existingNote: note) { updated in
+                note = updated
+                onNoteUpdated(updated)
+            }
+        }
+        .confirmationDialog("このカフェログを削除しますか？", isPresented: $isShowingDeleteConfirm, titleVisibility: .visible) {
+            Button("削除", role: .destructive) {
+                Task {
+                    do {
+                        try await repository.deleteTastingNote(id: note.id)
+                        onNoteDeleted(note.id)
+                        dismiss()
+                    } catch {
+                        // Deletion failures surface as a no-op here; the note remains in the list for retry.
+                    }
+                }
+            }
+            Button("キャンセル", role: .cancel) {}
+        }
     }
 }
 
@@ -175,7 +226,8 @@ struct TasteScoreItem: View {
                 taste: TasteParameter(acidity: 5, sweetness: 4, bitterness: 2, body: 3, aroma: 5),
                 flavorNotes: ["フローラル", "ジャスミン", "シトラス", "レモン"],
                 comment: "天井が高く開放的な空間。淹れたてのハンドドリップはジャスミンのような香りと果実味が際立つ。"
-            )
+            ),
+            repository: PreviewCoffeeRepository.sample
         )
     }
 }

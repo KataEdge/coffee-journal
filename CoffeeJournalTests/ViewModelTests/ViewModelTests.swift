@@ -60,8 +60,8 @@ final class ViewModelTests: XCTestCase {
         vm.toggleFlavorTag("Nutty")
         XCTAssertTrue(vm.isValid)
 
-        let success = await vm.saveNote()
-        XCTAssertTrue(success)
+        let saved = await vm.saveNote()
+        XCTAssertNotNil(saved)
 
         let savedNotes = try? await repo.fetchTastingNotes()
         XCTAssertEqual(savedNotes?.count, 1)
