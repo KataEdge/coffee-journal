@@ -1,4 +1,5 @@
 import XCTest
+import CoreLocation
 @testable import CoffeeJournalCore
 
 final class CreateNoteViewModelTests: XCTestCase {
@@ -157,5 +158,19 @@ final class CreateNoteViewModelTests: XCTestCase {
         await vm.searchLocationCandidates()
 
         await vm.fetchCurrentLocation()
+    }
+
+    @MainActor
+    func testCreateNoteViewModel_fetchCurrentLocation_withKnownCoordinate_fillsCafeNameAndAddress() async {
+        let repo = MockCoffeeRepository()
+        let vm = CreateNoteViewModel(repository: repo)
+        vm.cafeName = ""
+        vm.address = ""
+        vm.locationManager.userLocation = CLLocationCoordinate2D(latitude: 35.6812, longitude: 139.7671)
+
+        await vm.fetchCurrentLocation()
+
+        XCTAssertEqual(vm.latitude, 35.6812)
+        XCTAssertEqual(vm.longitude, 139.7671)
     }
 }

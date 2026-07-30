@@ -54,4 +54,18 @@ final class MockAuthRepositoryTests: XCTestCase {
             XCTAssertTrue(error is AppError)
         }
     }
+
+    func test_mockAuthRepository_customError_isThrownInsteadOfDefault() async {
+        let repo = MockAuthRepository()
+        repo.shouldFail = true
+        let customError = NSError(domain: "test", code: 42, userInfo: [NSLocalizedDescriptionKey: "Custom failure"])
+        repo.customError = customError
+
+        do {
+            _ = try await repo.signIn(email: "a@b.com", password: "p")
+            XCTFail("Should throw the configured custom error")
+        } catch {
+            XCTAssertEqual((error as NSError).code, 42)
+        }
+    }
 }
