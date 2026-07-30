@@ -1,6 +1,11 @@
 import Foundation
 
 public enum AppConfig {
+    /// 本番環境 (Supabase) とデモ環境 (Mock) の切り替えフラグ
+    /// - true: 本番 Supabase サーバーに接続（認証・DB保存）
+    /// - false: デモ・UI確認用 Mock リポジトリを使用
+    public static var useProductionEnvironment: Bool = true
+
     private static let secrets: [String: Any]? = {
         if let path = Bundle.main.path(forResource: "Secrets", ofType: "plist"),
            let dict = NSDictionary(contentsOfFile: path) as? [String: Any] {
