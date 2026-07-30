@@ -9,7 +9,7 @@ struct CoffeeJournalApp: App {
 
     var body: some Scene {
         WindowGroup {
-            TastingNoteListView(repository: repository)
+            MainTabView(repository: repository)
         }
     }
 }

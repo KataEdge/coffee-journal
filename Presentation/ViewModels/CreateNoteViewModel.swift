@@ -1,10 +1,13 @@
 import SwiftUI
 import Observation
+import CoreLocation
 
 @Observable
 public final class CreateNoteViewModel {
     public var cafeName: String = ""
     public var address: String = ""
+    public var latitude: Double? = nil
+    public var longitude: Double? = nil
     public var drinkName: String = ""
     public var brewMethod: String = "ハンドドリップ"
     public var roaster: String = ""
@@ -20,6 +23,9 @@ public final class CreateNoteViewModel {
     public var isSaving: Bool = false
     public var errorMessage: String? = nil
 
+    public let locationManager: LocationManager
+    public let locationSearchService: LocationSearchService
+
     public let availableBrewMethods = [
         "ハンドドリップ", "エスプレッソ・ラテ", "水出し", "その他"
     ]
@@ -32,9 +38,16 @@ public final class CreateNoteViewModel {
     private let repository: CoffeeRepositoryProtocol
     private let userId: UUID
 
-    public init(repository: CoffeeRepositoryProtocol, userId: UUID = UUID()) {
+    public init(
+        repository: CoffeeRepositoryProtocol,
+        userId: UUID = UUID(),
+        locationManager: LocationManager = LocationManager(),
+        locationSearchService: LocationSearchService = LocationSearchService()
+    ) {
         self.repository = repository
         self.userId = userId
+        self.locationManager = locationManager
+        self.locationSearchService = locationSearchService
     }
 
     public var isValid: Bool {
@@ -47,6 +60,38 @@ public final class CreateNoteViewModel {
             selectedFlavorTags.remove(tag)
         } else {
             selectedFlavorTags.insert(tag)
+        }
+    }
+
+    @MainActor
+    public func searchLocationCandidates() async {
+        await locationSearchService.searchCafes(query: cafeName)
+    }
+
+    @MainActor
+    public func selectSearchResult(_ result: LocationSearchResult) {
+        self.cafeName = result.title
+        self.address = result.subtitle
+        self.latitude = result.latitude
+        self.longitude = result.longitude
+        self.locationSearchService.searchResults = []
+    }
+
+    @MainActor
+    public func fetchCurrentLocation() async {
+        locationManager.requestLocation()
+        if let userCoord = locationManager.userLocation {
+            self.latitude = userCoord.latitude
+            self.longitude = userCoord.longitude
+
+            if let geocoded = await locationSearchService.reverseGeocode(coordinate: userCoord) {
+                if cafeName.isEmpty {
+                    cafeName = geocoded.name
+                }
+                if address.isEmpty {
+                    address = geocoded.address
+                }
+            }
         }
     }
 
@@ -72,6 +117,8 @@ public final class CreateNoteViewModel {
             userId: userId,
             cafeName: cafeName.trimmingCharacters(in: .whitespacesAndNewlines),
             address: address.isEmpty ? nil : address.trimmingCharacters(in: .whitespacesAndNewlines),
+            latitude: latitude,
+            longitude: longitude,
             drinkName: drinkName.trimmingCharacters(in: .whitespacesAndNewlines),
             brewMethod: brewMethod,
             roaster: roaster.isEmpty ? nil : roaster.trimmingCharacters(in: .whitespacesAndNewlines),
