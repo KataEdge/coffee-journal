@@ -26,7 +26,7 @@ public final class SupabaseCoffeeRepository: CoffeeRepositoryProtocol, @unchecke
                 .value
             return dtos.map { $0.toDomain() }
         } catch {
-            throw AppError.databaseError(error.localizedDescription)
+            throw wrapError(error)
         }
     }
 
@@ -41,7 +41,7 @@ public final class SupabaseCoffeeRepository: CoffeeRepositoryProtocol, @unchecke
                 .value
             return dtos.map { $0.toDomain() }
         } catch {
-            throw AppError.databaseError(error.localizedDescription)
+            throw wrapError(error)
         }
     }
 
@@ -56,7 +56,7 @@ public final class SupabaseCoffeeRepository: CoffeeRepositoryProtocol, @unchecke
                 .value
             return dtos.first?.toDomain()
         } catch {
-            throw AppError.databaseError(error.localizedDescription)
+            throw wrapError(error)
         }
     }
 
@@ -72,7 +72,7 @@ public final class SupabaseCoffeeRepository: CoffeeRepositoryProtocol, @unchecke
                 .value
             return insertedDTO.toDomain()
         } catch {
-            throw AppError.databaseError(error.localizedDescription)
+            throw wrapError(error)
         }
     }
 
@@ -89,7 +89,7 @@ public final class SupabaseCoffeeRepository: CoffeeRepositoryProtocol, @unchecke
                 .value
             return updatedDTO.toDomain()
         } catch {
-            throw AppError.databaseError(error.localizedDescription)
+            throw wrapError(error)
         }
     }
 
@@ -101,8 +101,16 @@ public final class SupabaseCoffeeRepository: CoffeeRepositoryProtocol, @unchecke
                 .eq("id", value: id.uuidString)
                 .execute()
         } catch {
-            throw AppError.databaseError(error.localizedDescription)
+            throw wrapError(error)
         }
+    }
+
+    // MARK: - Internal Helper
+    internal func wrapError(_ error: Error) -> AppError {
+        if let appErr = error as? AppError {
+            return appErr
+        }
+        return AppError.databaseError(error.localizedDescription)
     }
 }
 #endif

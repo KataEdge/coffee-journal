@@ -1,0 +1,87 @@
+import XCTest
+import MapKit
+import CoreLocation
+@testable import CoffeeJournalCore
+
+final class CoffeeMapViewModelTests: XCTestCase {
+    func testNotesWithLocationFiltering() async {
+        let noteWithLoc = CafeVisitNote(
+            cafeName: "Map Cafe",
+            latitude: 35.6811,
+            longitude: 139.7997,
+            drinkName: "Latte"
+        )
+        let noteWithoutLoc = CafeVisitNote(
+            cafeName: "No Location Cafe",
+            latitude: nil,
+            longitude: nil,
+            drinkName: "Drip"
+        )
+        let repository = MockCoffeeRepository(notes: [noteWithLoc, noteWithoutLoc])
+        let viewModel = CoffeeMapViewModel(repository: repository)
+
+        await viewModel.fetchNotes()
+
+        XCTAssertEqual(viewModel.notes.count, 2)
+        XCTAssertEqual(viewModel.notesWithLocation.count, 1)
+        XCTAssertEqual(viewModel.notesWithLocation.first?.cafeName, "Map Cafe")
+    }
+
+    func testFetchNotesError_setsErrorMessage() async {
+        let repository = MockCoffeeRepository()
+        repository.shouldFail = true
+        let viewModel = CoffeeMapViewModel(repository: repository)
+
+        await viewModel.fetchNotes()
+
+        XCTAssertTrue(viewModel.notes.isEmpty)
+        XCTAssertNotNil(viewModel.errorMessage)
+        XCTAssertFalse(viewModel.isLoading)
+    }
+
+    func testSelectNoteUpdatesSelectedNoteState() {
+        let note = CafeVisitNote(
+            cafeName: "Map Cafe",
+            latitude: 35.6811,
+            longitude: 139.7997,
+            drinkName: "Latte"
+        )
+        let repository = MockCoffeeRepository(notes: [note])
+        let viewModel = CoffeeMapViewModel(repository: repository)
+
+        XCTAssertNil(viewModel.selectedNote)
+
+        viewModel.selectNote(note)
+        XCTAssertEqual(viewModel.selectedNote?.id, note.id)
+
+        viewModel.selectNote(nil)
+        XCTAssertNil(viewModel.selectedNote)
+    }
+
+    func testSelectNoteWithoutLocation_setsSelectedNoteWithoutCrash() {
+        let noteWithoutLoc = CafeVisitNote(
+            cafeName: "No Coordinate Cafe",
+            latitude: nil,
+            longitude: nil,
+            drinkName: "Drip"
+        )
+        let repository = MockCoffeeRepository(notes: [noteWithoutLoc])
+        let viewModel = CoffeeMapViewModel(repository: repository)
+
+        viewModel.selectNote(noteWithoutLoc)
+        XCTAssertEqual(viewModel.selectedNote?.id, noteWithoutLoc.id)
+    }
+
+    @MainActor
+    func testMoveToUserLocation_withAndWithoutUserLocation() {
+        let repository = MockCoffeeRepository()
+        let viewModel = CoffeeMapViewModel(repository: repository)
+
+        viewModel.moveToUserLocation()
+        XCTAssertNotNil(viewModel.position)
+
+        viewModel.locationManager.userLocation = CLLocationCoordinate2D(latitude: 35.6812, longitude: 139.7671)
+        viewModel.moveToUserLocation()
+        XCTAssertNotNil(viewModel.position)
+    }
+}
