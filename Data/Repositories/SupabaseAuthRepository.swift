@@ -19,25 +19,10 @@ public final class SupabaseAuthRepository: AuthRepositoryProtocol, @unchecked Se
 
     public func currentUserProfile() async throws -> UserProfile? {
         do {
-            return try await withThrowingTaskGroup(of: UserProfile?.self) { group in
-                group.addTask {
-                    guard let user = self.client.auth.currentSession?.user else {
-                        return nil
-                    }
-                    return try await self.fetchOrCreateProfile(for: user.id)
-                }
-                
-                group.addTask {
-                    try await Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
-                    throw AppError.networkError("Authentication request timed out")
-                }
-                
-                guard let result = try await group.next() else {
-                    return nil
-                }
-                group.cancelAll()
-                return result
+            guard let user = self.client.auth.currentSession?.user else {
+                return nil
             }
+            return try await self.fetchOrCreateProfile(for: user.id)
         } catch {
             return nil
         }
@@ -78,15 +63,12 @@ public final class SupabaseAuthRepository: AuthRepositoryProtocol, @unchecked Se
         var avatarUrl: String? = nil
         do {
             guard let user = client.auth.currentSession?.user else {
-                print("[SupabaseAuthRepository] Error: No authenticated session found. Email confirmation may be pending.")
                 throw AppError.authenticationError("メール認証が完了していません。届いた確認メールのリンクをクリックしてログインしてください。")
             }
             let userId = user.id
-            print("[SupabaseAuthRepository] Updating profile for userId: \(userId), username: \(username ?? "nil")")
 
             if let avatarData = avatarData, !avatarData.isEmpty {
                 let path = "\(userId.uuidString)/avatar.jpg"
-                print("[SupabaseAuthRepository] Uploading avatar image to path: \(path)")
                 _ = try await client.storage
                     .from(avatarBucket)
                     .upload(
@@ -96,20 +78,12 @@ public final class SupabaseAuthRepository: AuthRepositoryProtocol, @unchecked Se
                     )
                 let publicUrl = try client.storage.from(avatarBucket).getPublicURL(path: path)
                 avatarUrl = publicUrl.absoluteString
-                print("[SupabaseAuthRepository] Avatar uploaded successfully: \(avatarUrl ?? "")")
             } else {
                 let existing = try? await fetchProfile(for: userId)
                 avatarUrl = existing?.avatarUrl
             }
 
-            var payload: [String: String?] = [
-                "id": userId.uuidString,
-                "username": username,
-                "updated_at": ISO8601DateFormatter().string(from: Date())
-            ]
-            if let avatarUrl = avatarUrl {
-                payload["avatar_url"] = avatarUrl
-            }
+            let payload = makeProfilePayload(userId: userId, username: username, avatarUrl: avatarUrl)
 
             do {
                 let updatedDTO: ProfileDTO = try await client
@@ -120,17 +94,13 @@ public final class SupabaseAuthRepository: AuthRepositoryProtocol, @unchecked Se
                     .execute()
                     .value
 
-                print("[SupabaseAuthRepository] Profile updated successfully in DB: \(updatedDTO)")
                 return updatedDTO.toDomain()
             } catch {
-                print("[SupabaseAuthRepository] DB upsert error: \(error). Using fallback.")
                 return UserProfile(id: userId, username: username, avatarUrl: avatarUrl, updatedAt: Date())
             }
         } catch let appErr as AppError {
             throw appErr
         } catch {
-            print("[SupabaseAuthRepository] Outer error in updateProfile: \(error)")
-            // Fallback gracefully instead of throwing databaseError
             if let user = client.auth.currentSession?.user {
                 return UserProfile(id: user.id, username: username, avatarUrl: avatarUrl, updatedAt: Date())
             }
@@ -146,6 +116,27 @@ public final class SupabaseAuthRepository: AuthRepositoryProtocol, @unchecked Se
         }
     }
 
+    // MARK: - Internal Testable Pure Functions
+
+    internal func wrapError(_ error: Error) -> AppError {
+        if let appError = error as? AppError {
+            return appError
+        }
+        return AppError.authenticationError(error.localizedDescription)
+    }
+
+    internal func makeProfilePayload(userId: UUID, username: String?, avatarUrl: String?) -> [String: String?] {
+        var payload: [String: String?] = [
+            "id": userId.uuidString,
+            "username": username,
+            "updated_at": ISO8601DateFormatter().string(from: Date())
+        ]
+        if let avatarUrl = avatarUrl {
+            payload["avatar_url"] = avatarUrl
+        }
+        return payload
+    }
+
     // MARK: - Private Helpers
 
     private func fetchProfile(for userId: UUID) async throws -> UserProfile? {
@@ -157,21 +148,17 @@ public final class SupabaseAuthRepository: AuthRepositoryProtocol, @unchecked Se
                 .limit(1)
                 .execute()
                 .value
-            print("[SupabaseAuthRepository] Fetched profile DTO from DB for \(userId.uuidString): \(dtos)")
             return dtos.first?.toDomain()
         } catch {
-            print("[SupabaseAuthRepository] Error fetching profile for \(userId.uuidString): \(error)")
             return nil
         }
     }
 
     private func fetchOrCreateProfile(for userId: UUID) async throws -> UserProfile {
         if let existing = try await fetchProfile(for: userId) {
-            print("[SupabaseAuthRepository] Existing profile found for \(userId.uuidString): \(existing.username ?? "nil")")
             return existing
         }
 
-        print("[SupabaseAuthRepository] No existing profile found. Initializing new profile for \(userId.uuidString)")
         let newProfileDTO = ProfileDTO(id: userId, username: nil, avatarUrl: nil)
         do {
             let insertedDTO: ProfileDTO = try await client
@@ -183,7 +170,6 @@ public final class SupabaseAuthRepository: AuthRepositoryProtocol, @unchecked Se
                 .value
             return insertedDTO.toDomain()
         } catch {
-            print("[SupabaseAuthRepository] Profile init blocked: \(error). Using transient profile.")
             return UserProfile(id: userId, username: nil, avatarUrl: nil)
         }
     }

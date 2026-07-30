@@ -1,0 +1,12 @@
+#!/bin/sh
+# Pre-push hook to check unit test coverage for CoffeeJournal
+
+echo "🧪 Running unit test coverage check before push..."
+./scripts/check-coverage.sh
+
+if [ $? -ne 0 ]; then
+    echo "❌ Push blocked: Business logic unit test coverage is below 90%!"
+    exit 1
+fi
+
+echo "✅ Test coverage requirement (>= 90%) satisfied."

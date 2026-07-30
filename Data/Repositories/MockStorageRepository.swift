@@ -1,6 +1,4 @@
 import Foundation
-@testable import CoffeeJournalCore
-
 
 public final class MockStorageRepository: StorageRepositoryProtocol, @unchecked Sendable {
     public var mockPresignedURL = URL(string: "https://example-s3.amazonaws.com/upload-target")!

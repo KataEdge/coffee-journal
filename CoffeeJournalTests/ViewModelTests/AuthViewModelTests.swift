@@ -43,6 +43,20 @@ final class AuthViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.status, .authenticated(profile))
     }
 
+    func testCheckAuthStatusError() async {
+        mockRepository.shouldFail = true
+        await viewModel.checkAuthStatus()
+        XCTAssertEqual(viewModel.status, .unauthenticated)
+        XCTAssertNotNil(viewModel.errorMessage)
+    }
+
+    func testSubmitAuthEmptyValidation() async {
+        viewModel.email = "   "
+        viewModel.password = ""
+        await viewModel.submitAuth()
+        XCTAssertEqual(viewModel.errorMessage, "メールアドレスとパスワードを入力してください。")
+    }
+
     func testSignInAnonymouslySuccess() async {
         await viewModel.signInAnonymously()
         if case .authenticated(let profile) = viewModel.status {
@@ -54,7 +68,13 @@ final class AuthViewModelTests: XCTestCase {
         }
     }
 
-    func testSignInSuccess() async {
+    func testSignInAnonymouslyFailure() async {
+        mockRepository.shouldFail = true
+        await viewModel.signInAnonymously()
+        XCTAssertNotNil(viewModel.errorMessage)
+    }
+
+    func testSignInSuccessExistingUser() async {
         viewModel.email = "test@example.com"
         viewModel.password = "password123"
         viewModel.isSignUpMode = false
@@ -66,6 +86,17 @@ final class AuthViewModelTests: XCTestCase {
         } else {
             XCTFail("Expected authenticated status after sign in")
         }
+    }
+
+    func testSignInFailure() async {
+        viewModel.email = "test@example.com"
+        viewModel.password = "wrongpassword"
+        viewModel.isSignUpMode = false
+        mockRepository.shouldFail = true
+
+        await viewModel.submitAuth()
+
+        XCTAssertNotNil(viewModel.errorMessage)
     }
 
     func testSignUpSuccess() async {
@@ -82,7 +113,79 @@ final class AuthViewModelTests: XCTestCase {
         }
     }
 
-    func testCompleteOnboarding() async {
+    func testSignUpFailure() async {
+        viewModel.email = "newuser@example.com"
+        viewModel.password = "password123"
+        viewModel.isSignUpMode = true
+        mockRepository.shouldFail = true
+
+        await viewModel.submitAuth()
+
+        XCTAssertNotNil(viewModel.errorMessage)
+    }
+
+    func testUpdateProfileSuccess() async {
+        let initialProfile = UserProfile(id: UUID(), username: "OldName")
+        viewModel.status = .authenticated(initialProfile)
+        mockRepository.currentProfile = initialProfile
+
+        let dummyData = "image".data(using: .utf8)
+        await viewModel.updateProfile(username: "NewName", avatarData: dummyData)
+
+        if case .authenticated(let profile) = viewModel.status {
+            XCTAssertEqual(profile.username, "NewName")
+            XCTAssertNotNil(profile.avatarUrl)
+        } else {
+            XCTFail("Expected authenticated status")
+        }
+    }
+
+    func testUpdateProfileEmptyUsernameFallback() async {
+        let initialProfile = UserProfile(id: UUID(), username: "OriginalName")
+        viewModel.status = .authenticated(initialProfile)
+        mockRepository.currentProfile = initialProfile
+
+        await viewModel.updateProfile(username: "   ", avatarData: nil)
+
+        if case .authenticated(let profile) = viewModel.status {
+            XCTAssertEqual(profile.username, "OriginalName")
+        } else {
+            XCTFail("Expected authenticated status")
+        }
+    }
+
+    func testUpdateProfileNilUsernameFallbackToDefault() async {
+        let initialProfile = UserProfile(id: UUID(), username: nil)
+        viewModel.status = .authenticated(initialProfile)
+        mockRepository.currentProfile = initialProfile
+
+        await viewModel.updateProfile(username: "   ", avatarData: nil)
+
+        if case .authenticated(let profile) = viewModel.status {
+            XCTAssertEqual(profile.username, "コーヒーラバー")
+        } else {
+            XCTFail("Expected authenticated status with default name")
+        }
+    }
+
+    func testUpdateProfileFailure() async {
+        let initialProfile = UserProfile(id: UUID(), username: "OldName")
+        viewModel.status = .authenticated(initialProfile)
+        mockRepository.currentProfile = initialProfile
+        mockRepository.shouldFail = true
+
+        await viewModel.updateProfile(username: "NewName", avatarData: nil)
+
+        XCTAssertNotNil(viewModel.errorMessage)
+    }
+
+    func testUpdateProfileWhenNotAuthenticatedDoesNothing() async {
+        viewModel.status = .unauthenticated
+        await viewModel.updateProfile(username: "NewName", avatarData: nil)
+        XCTAssertEqual(viewModel.status, .unauthenticated)
+    }
+
+    func testCompleteOnboardingSuccess() async {
         let initialProfile = UserProfile(id: UUID(), username: nil)
         viewModel.status = .onboardingRequired(initialProfile)
         mockRepository.currentProfile = initialProfile
@@ -97,7 +200,54 @@ final class AuthViewModelTests: XCTestCase {
         }
     }
 
-    func testSignOut() async {
+    func testCompleteOnboardingEmptyUsernameFallback() async {
+        let initialProfile = UserProfile(id: UUID(), username: nil)
+        viewModel.status = .onboardingRequired(initialProfile)
+        mockRepository.currentProfile = initialProfile
+        viewModel.onboardingUsername = "   "
+
+        await viewModel.completeOnboarding()
+
+        if case .authenticated(let updatedProfile) = viewModel.status {
+            XCTAssertEqual(updatedProfile.username, "コーヒーラバー")
+        } else {
+            XCTFail("Expected authenticated status after completing onboarding")
+        }
+    }
+
+    func testCompleteOnboardingFailure() async {
+        let initialProfile = UserProfile(id: UUID(), username: nil)
+        viewModel.status = .onboardingRequired(initialProfile)
+        mockRepository.currentProfile = initialProfile
+        mockRepository.shouldFail = true
+
+        await viewModel.completeOnboarding()
+
+        XCTAssertNotNil(viewModel.errorMessage)
+    }
+
+    func testCompleteOnboardingWhenNotRequiredDoesNothing() async {
+        viewModel.status = .unauthenticated
+        await viewModel.completeOnboarding()
+        XCTAssertEqual(viewModel.status, .unauthenticated)
+    }
+
+    @MainActor
+    func testSkipOnboarding() async {
+        let initialProfile = UserProfile(id: UUID(), username: nil)
+        viewModel.status = .onboardingRequired(initialProfile)
+        mockRepository.currentProfile = initialProfile
+
+        viewModel.skipOnboarding()
+
+        if case .authenticated(let profile) = viewModel.status {
+            XCTAssertEqual(profile.username, "コーヒーラバー")
+        } else {
+            XCTFail("Expected authenticated status after skipping onboarding")
+        }
+    }
+
+    func testSignOutSuccess() async {
         let profile = UserProfile(id: UUID(), username: "User")
         viewModel.status = .authenticated(profile)
         mockRepository.currentProfile = profile
@@ -106,5 +256,16 @@ final class AuthViewModelTests: XCTestCase {
 
         XCTAssertEqual(viewModel.status, .unauthenticated)
         XCTAssertNil(mockRepository.currentProfile)
+    }
+
+    func testSignOutFailure() async {
+        let profile = UserProfile(id: UUID(), username: "User")
+        viewModel.status = .authenticated(profile)
+        mockRepository.currentProfile = profile
+        mockRepository.shouldFail = true
+
+        await viewModel.signOut()
+
+        XCTAssertNotNil(viewModel.errorMessage)
     }
 }

@@ -5,6 +5,12 @@ import Foundation
 public final class MockCoffeeRepository: CoffeeRepositoryProtocol, @unchecked Sendable {
     public var notes: [CafeVisitNote] = []
     public var shouldReturnError: Error?
+    public var shouldFail: Bool {
+        get { shouldReturnError != nil }
+        set {
+            shouldReturnError = newValue ? AppError.databaseError("Mock failure") : nil
+        }
+    }
 
     public init(notes: [CafeVisitNote] = []) {
         self.notes = notes

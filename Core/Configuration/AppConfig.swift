@@ -2,11 +2,9 @@ import Foundation
 
 public enum AppConfig {
     /// 本番環境 (Supabase) とデモ環境 (Mock) の切り替えフラグ
-    /// - true: 本番 Supabase サーバーに接続（認証・DB保存）
-    /// - false: デモ・UI確認用 Mock リポジトリを使用
     public static var useProductionEnvironment: Bool = true
 
-    private static let secrets: [String: Any]? = {
+    internal static let secrets: [String: Any]? = {
         if let path = Bundle.main.path(forResource: "Secrets", ofType: "plist"),
            let dict = NSDictionary(contentsOfFile: path) as? [String: Any] {
             return dict
@@ -18,34 +16,25 @@ public enum AppConfig {
         return nil
     }()
 
+    internal static func resolveConfigValue(key: String, envKey: String, defaultValue: String) -> String {
+        if let val = secrets?[key] as? String, !val.isEmpty {
+            return val
+        }
+        if let envVal = ProcessInfo.processInfo.environment[envKey], !envVal.isEmpty {
+            return envVal
+        }
+        return (Bundle.main.infoDictionary?[key] as? String) ?? defaultValue
+    }
+
     public static var supabaseURL: String {
-        if let url = secrets?["SUPABASE_URL"] as? String, !url.isEmpty {
-            return url
-        }
-        if let envURL = ProcessInfo.processInfo.environment["SUPABASE_URL"], !envURL.isEmpty {
-            return envURL
-        }
-        return (Bundle.main.infoDictionary?["SUPABASE_URL"] as? String) ?? "https://placeholder.supabase.co"
+        resolveConfigValue(key: "SUPABASE_URL", envKey: "SUPABASE_URL", defaultValue: "https://placeholder.supabase.co")
     }
 
     public static var supabaseAnonKey: String {
-        if let key = secrets?["SUPABASE_ANON_KEY"] as? String, !key.isEmpty {
-            return key
-        }
-        if let envKey = ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"], !envKey.isEmpty {
-            return envKey
-        }
-        return (Bundle.main.infoDictionary?["SUPABASE_ANON_KEY"] as? String) ?? "placeholder-key"
+        resolveConfigValue(key: "SUPABASE_ANON_KEY", envKey: "SUPABASE_ANON_KEY", defaultValue: "placeholder-key")
     }
 
     public static var s3BucketName: String {
-        if let bucket = secrets?["AWS_S3_BUCKET_NAME"] as? String, !bucket.isEmpty {
-            return bucket
-        }
-        if let envBucket = ProcessInfo.processInfo.environment["AWS_S3_BUCKET_NAME"], !envBucket.isEmpty {
-            return envBucket
-        }
-        return (Bundle.main.infoDictionary?["AWS_S3_BUCKET_NAME"] as? String) ?? "coffee-journal-media"
+        resolveConfigValue(key: "AWS_S3_BUCKET_NAME", envKey: "AWS_S3_BUCKET_NAME", defaultValue: "coffee-journal-media")
     }
 }
-
