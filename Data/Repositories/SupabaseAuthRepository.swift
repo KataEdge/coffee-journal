@@ -60,13 +60,13 @@ public final class SupabaseAuthRepository: AuthRepositoryProtocol, @unchecked Se
     }
 
     public func updateProfile(username: String?, avatarData: Data?) async throws -> UserProfile {
-        var avatarUrl: String? = nil
         do {
             guard let user = client.auth.currentSession?.user else {
                 throw AppError.authenticationError("メール認証が完了していません。届いた確認メールのリンクをクリックしてログインしてください。")
             }
             let userId = user.id
 
+            var avatarUrl: String? = nil
             if let avatarData = avatarData, !avatarData.isEmpty {
                 let path = "\(userId.uuidString)/avatar.jpg"
                 _ = try await client.storage
@@ -85,26 +85,23 @@ public final class SupabaseAuthRepository: AuthRepositoryProtocol, @unchecked Se
 
             let payload = makeProfilePayload(userId: userId, username: username, avatarUrl: avatarUrl)
 
-            do {
-                let updatedDTO: ProfileDTO = try await client
-                    .from(profilesTable)
-                    .upsert(payload)
-                    .select()
-                    .single()
-                    .execute()
-                    .value
+            let updatedDTO: ProfileDTO = try await client
+                .from(profilesTable)
+                .upsert(payload)
+                .select()
+                .single()
+                .execute()
+                .value
 
-                return updatedDTO.toDomain()
-            } catch {
-                return UserProfile(id: userId, username: username, avatarUrl: avatarUrl, updatedAt: Date())
-            }
+            return updatedDTO.toDomain()
         } catch let appErr as AppError {
             throw appErr
         } catch {
-            if let user = client.auth.currentSession?.user {
-                return UserProfile(id: user.id, username: username, avatarUrl: avatarUrl, updatedAt: Date())
-            }
-            throw AppError.authenticationError("セッションが無効です。再度ログインしてください。")
+            // Previously this fell back to a client-side-only UserProfile that looked
+            // like a successful save, so a rejected write (e.g. an RLS or unique-
+            // constraint violation) silently never reached the database — the UI
+            // showed the new username until the next login re-fetched the old row.
+            throw AppError.databaseError("プロフィールの更新に失敗しました: \(error.localizedDescription)")
         }
     }
 
