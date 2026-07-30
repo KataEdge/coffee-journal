@@ -223,7 +223,7 @@ struct TasteScoreItem: View {
                 roaster: "Blue Bottle Coffee",
                 origin: "エチオピア",
                 roastLevel: "浅煎り",
-                taste: TasteParameter(acidity: 5, sweetness: 4, bitterness: 2, body: 3, aroma: 5),
+                taste: TasteParameter(acidity: 9, sweetness: 7, bitterness: 3, body: 5, aroma: 9),
                 flavorNotes: ["フローラル", "ジャスミン", "シトラス", "レモン"],
                 comment: "天井が高く開放的な空間。淹れたてのハンドドリップはジャスミンのような香りと果実味が際立つ。"
             ),

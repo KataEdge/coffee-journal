@@ -13,11 +13,11 @@ public final class CreateNoteViewModel {
     public var roaster: String = ""
     public var origin: String = ""
     public var roastLevel: String = "中煎り"
-    public var acidity: Int = 3
-    public var sweetness: Int = 3
-    public var bitterness: Int = 3
-    public var body: Int = 3
-    public var aroma: Int = 3
+    public var acidity: Int = 5
+    public var sweetness: Int = 5
+    public var bitterness: Int = 5
+    public var body: Int = 5
+    public var aroma: Int = 5
     public var selectedFlavorTags: Set<String> = []
     public var comment: String = ""
     public var isSaving: Bool = false

@@ -111,7 +111,7 @@ public struct CreateNoteView: View {
                     }
                 }
 
-                Section(header: Text("味のパラメータ (1 ~ 5)")) {
+                Section(header: Text("味のパラメータ (1 ~ 10)")) {
                     TasteSlider(label: "酸味 (Acidity)", value: $viewModel.acidity)
                     TasteSlider(label: "甘味 (Sweetness)", value: $viewModel.sweetness)
                     TasteSlider(label: "苦味 (Bitterness)", value: $viewModel.bitterness)
@@ -197,7 +197,7 @@ struct TasteSlider: View {
                     .fontWeight(.bold)
                     .foregroundColor(.amberAccent)
             }
-            Stepper("", value: $value, in: 1...5)
+            Stepper("", value: $value, in: 1...10)
                 .labelsHidden()
         }
     }

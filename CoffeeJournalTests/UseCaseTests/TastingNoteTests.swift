@@ -3,8 +3,8 @@ import XCTest
 
 final class TastingNoteTests: XCTestCase {
     func testTasteParameterInitializationClampsValues() {
-        let taste = TasteParameter(acidity: 10, sweetness: -2, bitterness: 4, body: 5, aroma: 1)
-        XCTAssertEqual(taste.acidity, 5)
+        let taste = TasteParameter(acidity: 15, sweetness: -2, bitterness: 4, body: 5, aroma: 1)
+        XCTAssertEqual(taste.acidity, 10)
         XCTAssertEqual(taste.sweetness, 1)
         XCTAssertEqual(taste.bitterness, 4)
         XCTAssertEqual(taste.body, 5)
