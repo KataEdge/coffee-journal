@@ -55,17 +55,38 @@ public struct TastingNoteListView: View {
                         }
                         .frame(maxHeight: .infinity)
                     } else {
-                        ScrollView {
-                            LazyVStack(spacing: 16) {
-                                ForEach(viewModel.filteredNotes) { note in
-                                    NavigationLink(destination: TastingNoteDetailView(note: note)) {
-                                        TastingNoteCard(note: note)
+                        List {
+                            ForEach(viewModel.filteredNotes) { note in
+                                NavigationLink(destination: TastingNoteDetailView(
+                                    note: note,
+                                    repository: repository,
+                                    onNoteUpdated: { updated in
+                                        if let index = viewModel.notes.firstIndex(where: { $0.id == updated.id }) {
+                                            viewModel.notes[index] = updated
+                                        }
+                                    },
+                                    onNoteDeleted: { deletedId in
+                                        viewModel.notes.removeAll { $0.id == deletedId }
                                     }
-                                    .buttonStyle(.plain)
+                                )) {
+                                    TastingNoteCard(note: note)
+                                }
+                                .buttonStyle(.plain)
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                .swipeActions(edge: .trailing) {
+                                    Button(role: .destructive) {
+                                        Task {
+                                            await viewModel.deleteNote(id: note.id)
+                                        }
+                                    } label: {
+                                        Label("削除", systemImage: "trash")
+                                    }
                                 }
                             }
-                            .padding()
                         }
+                        .listStyle(.plain)
                         .refreshable {
                             await viewModel.fetchNotes()
                         }
