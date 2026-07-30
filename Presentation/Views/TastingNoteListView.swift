@@ -29,6 +29,15 @@ public struct TastingNoteListView: View {
                             FilterChip(title: "水出し", isSelected: viewModel.selectedBrewMethodFilter == "水出し") {
                                 viewModel.selectedBrewMethodFilter = "水出し"
                             }
+                            FilterChip(title: "フレンチプレス", isSelected: viewModel.selectedBrewMethodFilter == "フレンチプレス") {
+                                viewModel.selectedBrewMethodFilter = "フレンチプレス"
+                            }
+                            FilterChip(title: "サイフォン", isSelected: viewModel.selectedBrewMethodFilter == "サイフォン") {
+                                viewModel.selectedBrewMethodFilter = "サイフォン"
+                            }
+                            FilterChip(title: "エアロプレス", isSelected: viewModel.selectedBrewMethodFilter == "エアロプレス") {
+                                viewModel.selectedBrewMethodFilter = "エアロプレス"
+                            }
                             FilterChip(title: "その他", isSelected: viewModel.selectedBrewMethodFilter == "その他") {
                                 viewModel.selectedBrewMethodFilter = "その他"
                             }
