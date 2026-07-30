@@ -2,11 +2,13 @@ import SwiftUI
 
 public struct TastingNoteListView: View {
     private let repository: CoffeeRepositoryProtocol
+    private let userId: UUID
     @State private var viewModel: TastingNoteListViewModel
     @State private var isShowingCreateSheet = false
 
-    public init(repository: CoffeeRepositoryProtocol) {
+    public init(repository: CoffeeRepositoryProtocol, userId: UUID) {
         self.repository = repository
+        self.userId = userId
         _viewModel = State(initialValue: TastingNoteListViewModel(repository: repository))
     }
 
@@ -125,7 +127,7 @@ public struct TastingNoteListView: View {
                 await viewModel.fetchNotes()
             }
             .sheet(isPresented: $isShowingCreateSheet) {
-                CreateNoteView(repository: repository)
+                CreateNoteView(repository: repository, userId: userId)
                     .onDisappear {
                         Task {
                             await viewModel.fetchNotes()
@@ -159,6 +161,6 @@ struct FilterChip: View {
 }
 
 #Preview {
-    TastingNoteListView(repository: PreviewCoffeeRepository.sample)
+    TastingNoteListView(repository: PreviewCoffeeRepository.sample, userId: UUID())
 }
 

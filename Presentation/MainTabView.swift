@@ -11,9 +11,18 @@ public struct MainTabView: View {
         self.authViewModel = authViewModel
     }
 
+    private var currentUserId: UUID {
+        switch authViewModel.status {
+        case .authenticated(let profile), .onboardingRequired(let profile):
+            return profile.id
+        case .unauthenticated, .authenticating:
+            return UUID()
+        }
+    }
+
     public var body: some View {
         TabView {
-            TastingNoteListView(repository: repository)
+            TastingNoteListView(repository: repository, userId: currentUserId)
                 .tabItem {
                     Label("ログ一覧", systemImage: "list.bullet")
                 }

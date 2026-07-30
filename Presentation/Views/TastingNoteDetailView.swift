@@ -170,7 +170,7 @@ public struct TastingNoteDetailView: View {
             }
         }
         .sheet(isPresented: $isShowingEditSheet) {
-            CreateNoteView(repository: repository, existingNote: note) { updated in
+            CreateNoteView(repository: repository, userId: note.userId, existingNote: note) { updated in
                 note = updated
                 onNoteUpdated(updated)
             }

@@ -7,10 +7,11 @@ public struct CreateNoteView: View {
 
     public init(
         repository: CoffeeRepositoryProtocol,
+        userId: UUID,
         existingNote: CafeVisitNote? = nil,
         onSave: ((CafeVisitNote) -> Void)? = nil
     ) {
-        _viewModel = State(initialValue: CreateNoteViewModel(repository: repository, existingNote: existingNote))
+        _viewModel = State(initialValue: CreateNoteViewModel(repository: repository, userId: userId, existingNote: existingNote))
         self.onSave = onSave
     }
 
@@ -204,5 +205,5 @@ struct TasteSlider: View {
 }
 
 #Preview {
-    CreateNoteView(repository: PreviewCoffeeRepository.sample)
+    CreateNoteView(repository: PreviewCoffeeRepository.sample, userId: UUID())
 }
