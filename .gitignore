@@ -15,4 +15,6 @@ xcuserdata/
 *.env.local
 Secrets.plist
 build/
+.simulator_id
+
 

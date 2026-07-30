@@ -33,7 +33,8 @@ let package = Package(
                 "CoffeeJournalTests",
                 "Secrets.sample.plist",
                 "scripts",
-                ".githooks"
+                ".githooks",
+                "build"
             ],
             sources: [
                 "Domain",
