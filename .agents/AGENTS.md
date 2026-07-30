@@ -27,3 +27,9 @@
 - **Worktree Cleanup**:
   - After a branch is merged, remove its worktree before deleting the branch: `git worktree remove ../coffee-journal-worktrees/<feature-name>` (a branch checked out in a worktree cannot be deleted with `git branch -d`). Run `git worktree prune` periodically to clear stale entries.
 
+## Cross-Tool Skills Sync (Antigravity ↔ Claude Code)
+- **Canonical Source**: `.agents/skills/` is the single source of truth for all skills. `.claude/skills/` contains **symlinks** pointing to `.agents/skills/`.
+- **Creating a New Skill**: Always create skills in `.agents/skills/<skill-name>/SKILL.md`, then run `scripts/sync-skills.sh` to create the corresponding `.claude/skills/` symlink.
+- **Pre-Commit Guard**: The `.githooks/pre-commit` hook automatically checks for missing symlinks and blocks commits if skills are out of sync. Run `scripts/sync-skills.sh` to fix.
+- **CLAUDE.md**: `CLAUDE.md` at the repo root is a symlink to `.agents/AGENTS.md`. Edit `.agents/AGENTS.md` directly; changes are reflected in both tools.
+- **After Cloning / New Worktree**: Run `scripts/install-hooks.sh` to set up git hooks and sync skills.
