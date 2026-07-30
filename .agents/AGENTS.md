@@ -4,6 +4,10 @@
 - Always develop new features, bug fixes, or refactoring in a separate topic branch (e.g. `feature/...`, `fix/...`).
 - Ensure all unit tests (`swift test`) pass before pushing and opening a Pull Request (PR) to `main`.
 - Maintain `main` as the stable, always-green branch.
+- **Mandatory Pre-Work Check**: Before making ANY file modifications (creating, editing, or deleting files), the agent MUST:
+  1. Run `git branch --show-current` and `git status` to verify the current state.
+  2. If on `main`, create a topic branch (`git checkout -b feature/...` or `fix/...`) BEFORE touching any files.
+  3. Never make code or config changes directly on `main` — not even "small" or "trivial" ones.
 
 ## Token Optimization & Efficiency
 - **Subagent Delegation**: Delegate broad codebase searches, extensive file reading, and investigation tasks to the `research` subagent to prevent bloating the main conversation context.
