@@ -1,3 +1,4 @@
+#if canImport(Supabase)
 import Foundation
 import Supabase
 
@@ -104,3 +105,4 @@ public final class SupabaseCoffeeRepository: CoffeeRepositoryProtocol, @unchecke
         }
     }
 }
+#endif
