@@ -98,7 +98,20 @@ public struct CoffeeMapView: View {
                         }
                         .padding(.trailing, 24)
 
-                        NavigationLink(destination: TastingNoteDetailView(note: selectedNote)) {
+                        NavigationLink(destination: TastingNoteDetailView(
+                            note: selectedNote,
+                            repository: repository,
+                            onNoteUpdated: { updated in
+                                if let index = viewModel.notes.firstIndex(where: { $0.id == updated.id }) {
+                                    viewModel.notes[index] = updated
+                                }
+                                viewModel.selectedNote = updated
+                            },
+                            onNoteDeleted: { deletedId in
+                                viewModel.notes.removeAll { $0.id == deletedId }
+                                viewModel.selectedNote = nil
+                            }
+                        )) {
                             HStack(spacing: 12) {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(selectedNote.cafeName)

@@ -3,9 +3,15 @@ import SwiftUI
 public struct CreateNoteView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: CreateNoteViewModel
+    private let onSave: ((CafeVisitNote) -> Void)?
 
-    public init(repository: CoffeeRepositoryProtocol) {
-        _viewModel = State(initialValue: CreateNoteViewModel(repository: repository))
+    public init(
+        repository: CoffeeRepositoryProtocol,
+        existingNote: CafeVisitNote? = nil,
+        onSave: ((CafeVisitNote) -> Void)? = nil
+    ) {
+        _viewModel = State(initialValue: CreateNoteViewModel(repository: repository, existingNote: existingNote))
+        self.onSave = onSave
     }
 
     public var body: some View {
@@ -105,7 +111,7 @@ public struct CreateNoteView: View {
                     }
                 }
 
-                Section(header: Text("味のパラメータ (1 ~ 5)")) {
+                Section(header: Text("味のパラメータ (1 ~ 10)")) {
                     TasteSlider(label: "酸味 (Acidity)", value: $viewModel.acidity)
                     TasteSlider(label: "甘味 (Sweetness)", value: $viewModel.sweetness)
                     TasteSlider(label: "苦味 (Bitterness)", value: $viewModel.bitterness)
@@ -149,7 +155,7 @@ public struct CreateNoteView: View {
                     }
                 }
             }
-            .navigationTitle("カフェログを記録")
+            .navigationTitle(viewModel.isEditing ? "カフェログを編集" : "カフェログを記録")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
@@ -160,10 +166,10 @@ public struct CreateNoteView: View {
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") {
+                    Button(viewModel.isEditing ? "更新" : "保存") {
                         Task {
-                            let success = await viewModel.saveNote()
-                            if success {
+                            if let saved = await viewModel.saveNote() {
+                                onSave?(saved)
                                 dismiss()
                             }
                         }
@@ -191,7 +197,7 @@ struct TasteSlider: View {
                     .fontWeight(.bold)
                     .foregroundColor(.amberAccent)
             }
-            Stepper("", value: $value, in: 1...5)
+            Stepper("", value: $value, in: 1...10)
                 .labelsHidden()
         }
     }

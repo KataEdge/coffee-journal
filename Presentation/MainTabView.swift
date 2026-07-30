@@ -4,6 +4,7 @@ import PhotosUI
 public struct MainTabView: View {
     private let repository: CoffeeRepositoryProtocol
     @Bindable var authViewModel: AuthViewModel
+    @AppStorage(AppTheme.storageKey) private var selectedThemeRaw: String = AppTheme.amber.rawValue
 
     public init(repository: CoffeeRepositoryProtocol, authViewModel: AuthViewModel) {
         self.repository = repository
@@ -26,7 +27,13 @@ public struct MainTabView: View {
                 .tabItem {
                     Label("マイページ", systemImage: "person.circle")
                 }
+
+            SettingsView()
+                .tabItem {
+                    Label("設定", systemImage: "gearshape")
+                }
         }
+        .id(selectedThemeRaw)
         .tint(.amberAccent)
     }
 }

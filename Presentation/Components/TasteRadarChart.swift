@@ -2,10 +2,10 @@ import SwiftUI
 
 public struct TasteRadarChart: View {
     public let taste: TasteParameter
-    public var maxScore: Double = 5.0
+    public var maxScore: Double = 10.0
     public var accentColor: Color = Color.amberAccent
 
-    public init(taste: TasteParameter, maxScore: Double = 5.0, accentColor: Color = Color.amberAccent) {
+    public init(taste: TasteParameter, maxScore: Double = 10.0, accentColor: Color = Color.amberAccent) {
         self.taste = taste
         self.maxScore = maxScore
         self.accentColor = accentColor
@@ -29,11 +29,11 @@ public struct TasteRadarChart: View {
             let radius = min(geometry.size.width, geometry.size.height) / 2 * 0.7
 
             ZStack {
-                // Background grid pentagons (1 to 5)
-                ForEach(1...5, id: \.self) { level in
+                // Background grid pentagons (1 to 10)
+                ForEach(1...10, id: \.self) { level in
                     let gridRadius = radius * (Double(level) / maxScore)
                     radarPentagonPath(center: center, radius: gridRadius)
-                        .stroke(Color.secondary.opacity(0.2), style: StrokeStyle(lineWidth: 1, dash: level == 5 ? [] : [3, 3]))
+                        .stroke(Color.secondary.opacity(0.2), style: StrokeStyle(lineWidth: 1, dash: level == 10 ? [] : [3, 3]))
                 }
 
                 // Grid axis lines
@@ -128,11 +128,7 @@ public struct TasteRadarChart: View {
     }
 }
 
-public extension Color {
-    static let amberAccent = Color(red: 0.85, green: 0.55, blue: 0.25)
-}
-
 #Preview {
-    TasteRadarChart(taste: TasteParameter(acidity: 4, sweetness: 3, bitterness: 2, body: 4, aroma: 5))
+    TasteRadarChart(taste: TasteParameter(acidity: 8, sweetness: 6, bitterness: 4, body: 7, aroma: 9))
         .padding()
 }

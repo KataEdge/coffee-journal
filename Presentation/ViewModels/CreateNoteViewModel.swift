@@ -13,11 +13,11 @@ public final class CreateNoteViewModel {
     public var roaster: String = ""
     public var origin: String = ""
     public var roastLevel: String = "中煎り"
-    public var acidity: Int = 3
-    public var sweetness: Int = 3
-    public var bitterness: Int = 3
-    public var body: Int = 3
-    public var aroma: Int = 3
+    public var acidity: Int = 5
+    public var sweetness: Int = 5
+    public var bitterness: Int = 5
+    public var body: Int = 5
+    public var aroma: Int = 5
     public var selectedFlavorTags: Set<String> = []
     public var comment: String = ""
     public var isSaving: Bool = false
@@ -27,7 +27,7 @@ public final class CreateNoteViewModel {
     public let locationSearchService: LocationSearchService
 
     public let availableBrewMethods = [
-        "ハンドドリップ", "エスプレッソ・ラテ", "水出し", "その他"
+        "ハンドドリップ", "エスプレッソ・ラテ", "水出し", "フレンチプレス", "サイフォン", "エアロプレス", "その他"
     ]
 
     public let availableFlavorTags = [
@@ -37,17 +37,41 @@ public final class CreateNoteViewModel {
 
     private let repository: CoffeeRepositoryProtocol
     private let userId: UUID
+    private let editingNote: CafeVisitNote?
+
+    public var isEditing: Bool { editingNote != nil }
 
     public init(
         repository: CoffeeRepositoryProtocol,
         userId: UUID = UUID(),
+        existingNote: CafeVisitNote? = nil,
         locationManager: LocationManager = LocationManager(),
         locationSearchService: LocationSearchService = LocationSearchService()
     ) {
         self.repository = repository
         self.userId = userId
+        self.editingNote = existingNote
         self.locationManager = locationManager
         self.locationSearchService = locationSearchService
+
+        if let existingNote {
+            self.cafeName = existingNote.cafeName
+            self.address = existingNote.address ?? ""
+            self.latitude = existingNote.latitude
+            self.longitude = existingNote.longitude
+            self.drinkName = existingNote.drinkName
+            self.brewMethod = existingNote.brewMethod
+            self.roaster = existingNote.roaster ?? ""
+            self.origin = existingNote.origin ?? ""
+            self.roastLevel = existingNote.roastLevel ?? ""
+            self.acidity = existingNote.taste.acidity
+            self.sweetness = existingNote.taste.sweetness
+            self.bitterness = existingNote.taste.bitterness
+            self.body = existingNote.taste.body
+            self.aroma = existingNote.taste.aroma
+            self.selectedFlavorTags = Set(existingNote.flavorNotes)
+            self.comment = existingNote.comment ?? ""
+        }
     }
 
     public var isValid: Bool {
@@ -96,10 +120,10 @@ public final class CreateNoteViewModel {
     }
 
     @MainActor
-    public func saveNote() async -> Bool {
+    public func saveNote() async -> CafeVisitNote? {
         guard isValid else {
             errorMessage = "カフェ店名とドリンク名を入力してください。"
-            return false
+            return nil
         }
 
         isSaving = true
@@ -114,7 +138,8 @@ public final class CreateNoteViewModel {
         )
 
         let note = CafeVisitNote(
-            userId: userId,
+            id: editingNote?.id ?? UUID(),
+            userId: editingNote?.userId ?? userId,
             cafeName: cafeName.trimmingCharacters(in: .whitespacesAndNewlines),
             address: address.isEmpty ? nil : address.trimmingCharacters(in: .whitespacesAndNewlines),
             latitude: latitude,
@@ -126,17 +151,21 @@ public final class CreateNoteViewModel {
             roastLevel: roastLevel.isEmpty ? nil : roastLevel,
             taste: taste,
             flavorNotes: Array(selectedFlavorTags),
-            comment: comment.isEmpty ? nil : comment.trimmingCharacters(in: .whitespacesAndNewlines)
+            imageUrls: editingNote?.imageUrls ?? [],
+            comment: comment.isEmpty ? nil : comment.trimmingCharacters(in: .whitespacesAndNewlines),
+            createdAt: editingNote?.createdAt ?? Date()
         )
 
         do {
-            _ = try await repository.createTastingNote(note)
+            let saved = isEditing
+                ? try await repository.updateTastingNote(note)
+                : try await repository.createTastingNote(note)
             isSaving = false
-            return true
+            return saved
         } catch {
             errorMessage = error.localizedDescription
             isSaving = false
-            return false
+            return nil
         }
     }
 }
