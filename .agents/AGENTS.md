@@ -16,6 +16,11 @@
 - **Credential Protection**: Never commit API keys, passwords, or tokens. Keep secret credentials in unversioned local files (`Secrets.plist`, `.env.local`).
 - **Gitleaks Scanning**: Maintain `.gitleaks.toml` rules and verify local/CI secret scanning passes before pushing PRs.
 
+## Database Schema & Migration Policy
+- **No Undocumented Schema Changes**: Any change to the live Supabase schema (tables, columns, `CHECK`/`FOREIGN KEY`/`UNIQUE` constraints, RLS policies, indexes, functions) — whether applied via the Supabase SQL Editor, `psql`, or any other direct connection — MUST be captured as a `.sql` file under `docs/migrations/` (named `YYYYMMDD_description.sql`) in the SAME session/PR that applies it. Update `.agents/skills/supabase-schema/SKILL.md` too if the change affects the documented table shape.
+- **Why**: A prior scale-widening change (1-5 → 1-10 taste ratings) was applied to Swift code but never migrated on the live DB, and no migration file existed to catch the drift — it silently broke saves in production until debugged live. See `docs/migrations/20260731_widen_tasting_notes_scale_to_10.sql` for the recovered record.
+- **Order of operations**: prefer writing the migration file *first*, then applying it, over applying-then-documenting — this makes the file the actual source of truth instead of an afterthought.
+
 ## Multi-Session & Git Worktree Strategy
 - **Session & Branch Isolation**:
   - Always run parallel AI sessions (Claude Code, Antigravity, etc.) in dedicated topic branches and separate Git Worktrees to prevent source code collisions and dirty git states.
