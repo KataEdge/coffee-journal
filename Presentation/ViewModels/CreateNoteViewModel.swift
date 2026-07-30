@@ -27,7 +27,7 @@ public final class CreateNoteViewModel {
     public let locationSearchService: LocationSearchService
 
     public let availableBrewMethods = [
-        "ハンドドリップ", "エスプレッソ・ラテ", "水出し", "その他"
+        "ハンドドリップ", "エスプレッソ・ラテ", "水出し", "フレンチプレス", "サイフォン", "エアロプレス", "その他"
     ]
 
     public let availableFlavorTags = [
