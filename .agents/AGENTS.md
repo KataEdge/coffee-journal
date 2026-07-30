@@ -20,4 +20,10 @@
   - Command example: `git worktree add ../coffee-journal-worktrees/feature-map-view -b feature/map-view`
 - **Pre-Session Safety Verification**:
   - At the start of a session, check `git branch`, `git worktree list`, and `git status` to verify that the workspace is operating in an isolated, clean topic branch.
+- **Duplicate Work Prevention**:
+  - Before starting a new task, run `git branch -a` and `gh pr list --state all` to confirm another session/agent has not already created a branch or PR for the same work. Isolation alone (worktrees) does not prevent two sessions from independently picking the same feature — this check is what does.
+- **Untracked Local Files in New Worktrees**:
+  - `git worktree add` only checks out tracked files. Gitignored local files required to build/test (`Secrets.plist`, `.env.local`) will NOT exist in a new worktree and must be copied in manually before running `swift test`, e.g. `cp Secrets.plist ../coffee-journal-worktrees/<feature-name>/Secrets.plist`.
+- **Worktree Cleanup**:
+  - After a branch is merged, remove its worktree before deleting the branch: `git worktree remove ../coffee-journal-worktrees/<feature-name>` (a branch checked out in a worktree cannot be deleted with `git branch -d`). Run `git worktree prune` periodically to clear stale entries.
 
