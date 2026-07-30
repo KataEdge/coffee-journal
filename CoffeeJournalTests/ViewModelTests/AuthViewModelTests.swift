@@ -88,6 +88,20 @@ final class AuthViewModelTests: XCTestCase {
         }
     }
 
+    func testSignInSuccessWithoutUsernameRequiresOnboarding() async {
+        viewModel.email = "@example.com"
+        viewModel.password = "password123"
+        viewModel.isSignUpMode = false
+
+        await viewModel.submitAuth()
+
+        if case .onboardingRequired(let profile) = viewModel.status {
+            XCTAssertTrue(profile.username?.isEmpty ?? true)
+        } else {
+            XCTFail("Expected onboardingRequired status when signed-in profile has no username")
+        }
+    }
+
     func testSignInFailure() async {
         viewModel.email = "test@example.com"
         viewModel.password = "wrongpassword"

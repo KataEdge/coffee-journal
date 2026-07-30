@@ -19,4 +19,16 @@ final class AppConfigTests: XCTestCase {
         let urlVal = AppConfig.resolveConfigValue(key: "SUPABASE_URL", envKey: "SUPABASE_URL", defaultValue: "fallback")
         XCTAssertFalse(urlVal.isEmpty)
     }
+
+    func test_resolveConfigValue_usesEnvironmentVariableWhenSecretsMissing() {
+        setenv("APP_CONFIG_TEST_ENV_KEY", "env-value", 1)
+        defer { unsetenv("APP_CONFIG_TEST_ENV_KEY") }
+
+        let val = AppConfig.resolveConfigValue(
+            key: "APP_CONFIG_TEST_NON_SECRET_KEY",
+            envKey: "APP_CONFIG_TEST_ENV_KEY",
+            defaultValue: "default-val"
+        )
+        XCTAssertEqual(val, "env-value")
+    }
 }
