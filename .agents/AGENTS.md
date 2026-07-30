@@ -4,6 +4,10 @@
 - Always develop new features, bug fixes, or refactoring in a separate topic branch (e.g. `feature/...`, `fix/...`).
 - Ensure all unit tests (`swift test`) pass before pushing and opening a Pull Request (PR) to `main`.
 - Maintain `main` as the stable, always-green branch.
+- **Mandatory Pre-Work Check**: Before making ANY file modifications (creating, editing, or deleting files), the agent MUST:
+  1. Run `git branch --show-current` and `git status` to verify the current state.
+  2. If on `main`, create a topic branch (`git checkout -b feature/...` or `fix/...`) BEFORE touching any files.
+  3. Never make code or config changes directly on `main` — not even "small" or "trivial" ones.
 
 ## Token Optimization & Efficiency
 - **Subagent Delegation**: Delegate broad codebase searches, extensive file reading, and investigation tasks to the `research` subagent to prevent bloating the main conversation context.
@@ -27,3 +31,9 @@
 - **Worktree Cleanup**:
   - After a branch is merged, remove its worktree before deleting the branch: `git worktree remove ../coffee-journal-worktrees/<feature-name>` (a branch checked out in a worktree cannot be deleted with `git branch -d`). Run `git worktree prune` periodically to clear stale entries.
 
+## Cross-Tool Skills Sync (Antigravity ↔ Claude Code)
+- **Canonical Source**: `.agents/skills/` is the single source of truth for all skills. `.claude/skills/` contains **symlinks** pointing to `.agents/skills/`.
+- **Creating a New Skill**: Always create skills in `.agents/skills/<skill-name>/SKILL.md`, then run `scripts/sync-skills.sh` to create the corresponding `.claude/skills/` symlink.
+- **Pre-Commit Guard**: The `.githooks/pre-commit` hook automatically checks for missing symlinks and blocks commits if skills are out of sync. Run `scripts/sync-skills.sh` to fix.
+- **CLAUDE.md**: `CLAUDE.md` at the repo root is a symlink to `.agents/AGENTS.md`. Edit `.agents/AGENTS.md` directly; changes are reflected in both tools.
+- **After Cloning / New Worktree**: Run `scripts/install-hooks.sh` to set up git hooks and sync skills.

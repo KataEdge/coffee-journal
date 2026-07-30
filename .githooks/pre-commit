@@ -1,6 +1,21 @@
 #!/bin/sh
-# Pre-commit hook to scan staged files for secrets using gitleaks
+# Pre-commit hook for CoffeeJournal
+# 1. Skills sync check (.agents/skills ↔ .claude/skills)
+# 2. Gitleaks secret scanning
 
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# ── 1. Skills sync check ──
+if [ -x "$REPO_ROOT/scripts/sync-skills.sh" ]; then
+    echo "🔄 Checking skills sync..."
+    if ! "$REPO_ROOT/scripts/sync-skills.sh" --check; then
+        echo ""
+        echo "💡 Run 'scripts/sync-skills.sh' to fix, then re-stage and commit."
+        exit 1
+    fi
+fi
+
+# ── 2. Gitleaks (staged changes) ──
 if command -v gitleaks >/dev/null 2>&1; then
     echo "🔒 Running Gitleaks secret scan on staged files..."
     gitleaks protect --staged --verbose
