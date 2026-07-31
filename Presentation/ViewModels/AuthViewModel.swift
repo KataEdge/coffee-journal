@@ -99,6 +99,24 @@ public final class AuthViewModel {
     }
 
     @MainActor
+    public func signInWithOAuth(provider: SocialAuthProvider) async {
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+
+        do {
+            let profile = try await authRepository.signInWithOAuth(provider: provider)
+            if let username = profile.username, !username.isEmpty {
+                self.status = .authenticated(profile)
+            } else {
+                self.status = .onboardingRequired(profile)
+            }
+        } catch {
+            self.errorMessage = error.localizedDescription
+        }
+    }
+
+    @MainActor
     public func updateProfile(username: String, avatarData: Data?) async {
         guard case .authenticated(let currentProfile) = status else { return }
         isLoading = true

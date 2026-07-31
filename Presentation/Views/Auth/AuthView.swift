@@ -152,7 +152,7 @@ public struct AuthView: View {
                 .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
                 .padding(.horizontal, 20)
 
-                // Guest Mode Divider & Button
+                // Social / Guest Sign-In Divider & Buttons
                 VStack(spacing: 12) {
                     HStack {
                         Rectangle()
@@ -166,6 +166,31 @@ public struct AuthView: View {
                             .frame(height: 1)
                     }
                     .padding(.horizontal, 30)
+
+                    // Apple provider is implemented (AuthViewModel/SupabaseAuthRepository) but hidden
+                    // until Sign in with Apple is configured on the Apple Developer / Supabase side.
+                    Button {
+                        Task {
+                            await viewModel.signInWithOAuth(provider: .google)
+                        }
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "g.circle.fill")
+                            Text("Googleでサインイン")
+                                .font(.subheadline.bold())
+                        }
+                        .frame(maxWidth: .infinity)
+                        .foregroundStyle(.white.opacity(0.9))
+                        .padding(.vertical, 12)
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                        )
+                    }
+                    .disabled(viewModel.isLoading)
+                    .padding(.horizontal, 20)
 
                     Button {
                         Task {

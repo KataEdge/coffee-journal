@@ -14,12 +14,37 @@ final class MockAuthRepositoryTests: XCTestCase {
         }
     }
 
+    func test_mockAuthRepository_signInWithOAuth_returnsConfiguredProfile() async throws {
+        let repo = MockAuthRepository()
+        repo.oauthProfileUsername = "Google User"
+
+        let profile = try await repo.signInWithOAuth(provider: .google)
+
+        XCTAssertEqual(profile.username, "Google User")
+        XCTAssertEqual(repo.currentProfile, profile)
+    }
+
+    func test_mockAuthRepository_signInWithOAuth_newUser_hasNilUsername() async throws {
+        let repo = MockAuthRepository()
+        repo.oauthProfileUsername = nil
+
+        let profile = try await repo.signInWithOAuth(provider: .apple)
+
+        XCTAssertNil(profile.username)
+    }
+
     func test_mockAuthRepository_allFailureBranches() async {
         let repo = MockAuthRepository()
         repo.shouldFail = true
 
         do {
             _ = try await repo.currentUserProfile()
+        } catch {
+            XCTAssertTrue(error is AppError)
+        }
+
+        do {
+            _ = try await repo.signInWithOAuth(provider: .google)
         } catch {
             XCTAssertTrue(error is AppError)
         }
