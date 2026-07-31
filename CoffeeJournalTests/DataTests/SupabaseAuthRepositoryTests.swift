@@ -113,6 +113,25 @@ final class SupabaseAuthRepositoryTests: XCTestCase {
         }
     }
 
+    func test_mapToSupabaseProvider_mapsCorrectly() {
+        XCTAssertEqual(repository.mapToSupabaseProvider(.google), .google)
+        XCTAssertEqual(repository.mapToSupabaseProvider(.apple), .apple)
+    }
+
+    func test_oauthRedirectURL_isCoffeeJournalCallbackScheme() {
+        XCTAssertEqual(repository.oauthRedirectURL.absoluteString, "coffeejournal://login-callback")
+    }
+
+    func test_wrapOAuthError_wrapsUnderlyingError() {
+        let nsErr = NSError(domain: "test", code: 2, userInfo: [NSLocalizedDescriptionKey: "OAuth failure"])
+        let wrapped = repository.wrapOAuthError(nsErr)
+        if case .authenticationError(let msg) = wrapped {
+            XCTAssertTrue(msg.contains("OAuth failure"))
+        } else {
+            XCTFail("Expected authenticationError")
+        }
+    }
+
     func test_signOut_withoutSession_handlesOrThrowsError() async {
         do {
             try await repository.signOut()
