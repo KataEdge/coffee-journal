@@ -74,6 +74,38 @@ final class AuthViewModelTests: XCTestCase {
         XCTAssertNotNil(viewModel.errorMessage)
     }
 
+    func testSignInWithOAuthSuccessExistingUser() async {
+        mockRepository.oauthProfileUsername = "Google User"
+
+        await viewModel.signInWithOAuth(provider: .google)
+
+        if case .authenticated(let profile) = viewModel.status {
+            XCTAssertEqual(profile.username, "Google User")
+        } else {
+            XCTFail("Expected authenticated status after OAuth sign in with existing username")
+        }
+    }
+
+    func testSignInWithOAuthSuccessNewUserRequiresOnboarding() async {
+        mockRepository.oauthProfileUsername = nil
+
+        await viewModel.signInWithOAuth(provider: .apple)
+
+        if case .onboardingRequired(let profile) = viewModel.status {
+            XCTAssertNil(profile.username)
+        } else {
+            XCTFail("Expected onboardingRequired status when OAuth profile has no username")
+        }
+    }
+
+    func testSignInWithOAuthFailure() async {
+        mockRepository.shouldFail = true
+
+        await viewModel.signInWithOAuth(provider: .google)
+
+        XCTAssertNotNil(viewModel.errorMessage)
+    }
+
     func testSignInSuccessExistingUser() async {
         viewModel.email = "test@example.com"
         viewModel.password = "password123"

@@ -66,11 +66,51 @@ open -a Simulator
 
 # 4. Build App
 echo "🔨 Building CoffeeJournal for iphonesimulator..."
-xcodebuild -project CoffeeJournal.xcodeproj -scheme CoffeeJournal -sdk iphonesimulator -destination "id=$DEVICE_ID" -derivedDataPath ./build build -quiet
+if [ -d "CoffeeJournal.xcodeproj" ]; then
+  xcodebuild -project CoffeeJournal.xcodeproj -scheme CoffeeJournal -sdk iphonesimulator -destination "id=$DEVICE_ID" -derivedDataPath ./build build
+  APP_PATH="./build/Build/Products/Debug-iphonesimulator/CoffeeJournal.app"
+  BUNDLE_ID="com.antigravity.CoffeeJournal"
+else
+  xcodebuild -scheme CoffeeJournalApp -destination "id=$DEVICE_ID" -derivedDataPath ./build build
+  APP_PATH=$(find ./build/Build/Products -name "*.app" | head -n 1)
+  BUNDLE_ID="com.antigravity.CoffeeJournal"
+
+  if [ -z "$APP_PATH" ] && [ -f "./build/Build/Products/Debug-iphonesimulator/CoffeeJournalApp" ]; then
+    APP_DIR="./build/Build/Products/Debug-iphonesimulator/CoffeeJournal.app"
+    mkdir -p "$APP_DIR"
+    cp "./build/Build/Products/Debug-iphonesimulator/CoffeeJournalApp" "$APP_DIR/CoffeeJournal"
+    cat <<'EOF' > "$APP_DIR/Info.plist"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>CoffeeJournal</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.antigravity.CoffeeJournal</string>
+    <key>CFBundleName</key>
+    <string>CoffeeJournal</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>MinimumOSVersion</key>
+    <string>17.0</string>
+</dict>
+</plist>
+EOF
+    APP_PATH="$APP_DIR"
+  fi
+fi
 
 # 5. Install & Launch
 echo "📦 Installing and launching CoffeeJournal..."
-xcrun simctl install "$DEVICE_ID" ./build/Build/Products/Debug-iphonesimulator/CoffeeJournal.app
-xcrun simctl launch "$DEVICE_ID" com.antigravity.CoffeeJournal
-
-echo "✅ Successfully launched CoffeeJournal on simulator ($DEVICE_ID)!"
+if [ -n "$APP_PATH" ] && [ -d "$APP_PATH" ]; then
+  xcrun simctl install "$DEVICE_ID" "$APP_PATH"
+  xcrun simctl launch "$DEVICE_ID" "$BUNDLE_ID"
+  echo "✅ Successfully launched CoffeeJournal on simulator ($DEVICE_ID)!"
+else
+  echo "⚠️ App bundle not found at $APP_PATH. Built target scheme successfully."
+fi

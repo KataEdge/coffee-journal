@@ -62,6 +62,18 @@ public final class SupabaseAuthRepository: AuthRepositoryProtocol, @unchecked Se
         }
     }
 
+    public func signInWithOAuth(provider: SocialAuthProvider) async throws -> UserProfile {
+        do {
+            let session = try await client.auth.signInWithOAuth(
+                provider: mapToSupabaseProvider(provider),
+                redirectTo: oauthRedirectURL
+            )
+            return try await fetchOrCreateProfile(for: session.user.id)
+        } catch {
+            throw wrapOAuthError(error)
+        }
+    }
+
     public func updateProfile(username: String?, avatarData: Data?) async throws -> UserProfile {
         do {
             guard let user = client.auth.currentSession?.user else {
@@ -145,6 +157,23 @@ public final class SupabaseAuthRepository: AuthRepositoryProtocol, @unchecked Se
             return appError
         }
         return AppError.authenticationError(error.localizedDescription)
+    }
+
+    internal func mapToSupabaseProvider(_ provider: SocialAuthProvider) -> Provider {
+        switch provider {
+        case .google:
+            return .google
+        case .apple:
+            return .apple
+        }
+    }
+
+    internal var oauthRedirectURL: URL {
+        URL(string: "coffeejournal://login-callback")!
+    }
+
+    internal func wrapOAuthError(_ error: Error) -> AppError {
+        AppError.authenticationError("OAuth sign in failed: \(error.localizedDescription)")
     }
 
     internal func makeProfilePayload(userId: UUID, username: String?, avatarUrl: String?) -> [String: String?] {

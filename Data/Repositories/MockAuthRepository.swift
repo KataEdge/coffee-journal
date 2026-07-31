@@ -4,6 +4,7 @@ public final class MockAuthRepository: AuthRepositoryProtocol, @unchecked Sendab
     public var currentProfile: UserProfile?
     public var shouldFail: Bool = false
     public var customError: Error?
+    public var oauthProfileUsername: String? = "OAuth User"
 
     public init(currentProfile: UserProfile? = nil) {
         self.currentProfile = currentProfile
@@ -39,6 +40,15 @@ public final class MockAuthRepository: AuthRepositoryProtocol, @unchecked Sendab
             throw customError ?? AppError.authenticationError("Sign up failed.")
         }
         let profile = UserProfile(id: UUID(), username: nil, avatarUrl: nil)
+        self.currentProfile = profile
+        return profile
+    }
+
+    public func signInWithOAuth(provider: SocialAuthProvider) async throws -> UserProfile {
+        if shouldFail {
+            throw customError ?? AppError.authenticationError("OAuth sign in failed.")
+        }
+        let profile = UserProfile(id: UUID(), username: oauthProfileUsername, avatarUrl: nil)
         self.currentProfile = profile
         return profile
     }
