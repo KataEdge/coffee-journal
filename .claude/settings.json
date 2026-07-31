@@ -12,7 +12,8 @@
       "Bash(git log:*)",
       "Bash(git branch:*)",
       "Bash(gitleaks detect:*)",
-      "Bash(gitleaks protect:*)"
+      "Bash(gitleaks protect:*)",
+      "mcp__supabase__*"
     ]
   },
   "hooks": {
