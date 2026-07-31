@@ -47,6 +47,7 @@ public final class SupabaseAuthRepository: AuthRepositoryProtocol, @unchecked Se
     }
 
     public func signUp(email: String, password: String) async throws -> UserProfile {
+        try PasswordValidator.validateOrThrow(password: password)
         do {
             let response = try await client.auth.signUp(email: email, password: password)
             let userId = response.user.id
@@ -54,6 +55,8 @@ public final class SupabaseAuthRepository: AuthRepositoryProtocol, @unchecked Se
                 return try await fetchOrCreateProfile(for: userId)
             }
             return UserProfile(id: userId, username: nil, avatarUrl: nil)
+        } catch let appErr as AppError {
+            throw appErr
         } catch {
             throw AppError.authenticationError("登録エラー: \(error.localizedDescription)")
         }
@@ -66,15 +69,37 @@ public final class SupabaseAuthRepository: AuthRepositoryProtocol, @unchecked Se
             }
             let userId = user.id
 
+            if let username = username, username.count > 30 {
+                throw AppError.validationError("ユーザー名は30文字以内で入力してください。")
+            }
+
             var avatarUrl: String? = nil
             if let avatarData = avatarData, !avatarData.isEmpty {
-                let path = "\(userId.uuidString)/avatar.jpg"
+                let format = try ImageValidator.validate(data: avatarData)
+                let ext: String
+                let contentType: String
+                switch format {
+                case .jpeg:
+                    ext = "jpg"
+                    contentType = "image/jpeg"
+                case .png:
+                    ext = "png"
+                    contentType = "image/png"
+                case .heic:
+                    ext = "heic"
+                    contentType = "image/heic"
+                case .webp:
+                    ext = "webp"
+                    contentType = "image/webp"
+                }
+
+                let path = "\(userId.uuidString)/avatar.\(ext)"
                 _ = try await client.storage
                     .from(avatarBucket)
                     .upload(
                         path,
                         data: avatarData,
-                        options: FileOptions(cacheControl: "3600", contentType: "image/jpeg", upsert: true)
+                        options: FileOptions(cacheControl: "3600", contentType: contentType, upsert: true)
                     )
                 let publicUrl = try client.storage.from(avatarBucket).getPublicURL(path: path)
                 avatarUrl = publicUrl.absoluteString

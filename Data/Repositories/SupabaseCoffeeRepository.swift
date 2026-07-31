@@ -61,6 +61,7 @@ public final class SupabaseCoffeeRepository: CoffeeRepositoryProtocol, @unchecke
     }
 
     public func createTastingNote(_ note: CafeVisitNote) async throws -> CafeVisitNote {
+        try validateNote(note)
         do {
             let dto = TastingNoteDTO(from: note)
             let insertedDTO: TastingNoteDTO = try await client
@@ -77,6 +78,7 @@ public final class SupabaseCoffeeRepository: CoffeeRepositoryProtocol, @unchecke
     }
 
     public func updateTastingNote(_ note: CafeVisitNote) async throws -> CafeVisitNote {
+        try validateNote(note)
         do {
             let dto = TastingNoteDTO(from: note)
             let updatedDTO: TastingNoteDTO = try await client
@@ -106,6 +108,15 @@ public final class SupabaseCoffeeRepository: CoffeeRepositoryProtocol, @unchecke
     }
 
     // MARK: - Internal Helper
+    private func validateNote(_ note: CafeVisitNote) throws {
+        if note.drinkName.count > 100 {
+            throw AppError.validationError("ドリンク・コーヒー豆の名前は100文字以内で入力してください。")
+        }
+        if let comment = note.comment, comment.count > 2000 {
+            throw AppError.validationError("コメントは2000文字以内で入力してください。")
+        }
+    }
+
     internal func wrapError(_ error: Error) -> AppError {
         if let appErr = error as? AppError {
             return appErr

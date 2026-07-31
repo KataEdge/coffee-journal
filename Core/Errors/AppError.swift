@@ -6,6 +6,7 @@ public enum AppError: Error, LocalizedError, Equatable {
     case authenticationRequired
     case authenticationError(String)
     case uploadFailed(String)
+    case validationError(String)
     case invalidData
     case unknown(String)
 
@@ -21,6 +22,8 @@ public enum AppError: Error, LocalizedError, Equatable {
             return "認証エラー: \(message)"
         case .uploadFailed(let message):
             return "画像アップロードに失敗しました: \(message)"
+        case .validationError(let message):
+            return "入力エラー: \(message)"
         case .invalidData:
             return "無効なデータです。"
         case .unknown(let message):

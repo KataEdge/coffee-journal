@@ -15,17 +15,18 @@ description: Supabase database table definitions, RLS security policies, and Swi
 
 ### 2. `cafes`
 - `id`: `UUID` (Primary Key, Default `gen_random_uuid()`)
-- `name`: `TEXT` (Not Null)
+- `name`: `TEXT` (Not Null, max 150 chars)
 - `address`: `TEXT` (Nullable)
 - `latitude`: `DOUBLE PRECISION` (Nullable)
 - `longitude`: `DOUBLE PRECISION` (Nullable)
+- `created_by`: `UUID` (References `profiles.id`, Default `auth.uid()`, Nullable)
 - `created_at`: `TIMESTAMPTZ` (Default `now()`)
 
 ### 3. `tasting_notes`
 - `id`: `UUID` (Primary Key, Default `gen_random_uuid()`)
 - `user_id`: `UUID` (References `profiles.id`, Not Null)
 - `cafe_id`: `UUID` (References `cafes.id`, Nullable)
-- `bean_name`: `TEXT` (Not Null)
+- `bean_name`: `TEXT` (Not Null, max 100 chars)
 - `roaster`: `TEXT` (Nullable)
 - `origin`: `TEXT` (Nullable)
 - `roast_level`: `TEXT` (e.g. "Light", "Medium", "Dark")
@@ -36,7 +37,7 @@ description: Supabase database table definitions, RLS security policies, and Swi
 - `aroma`: `INT2` (Scale 1-10)
 - `flavor_notes`: `TEXT[]` (Array of strings e.g. ["Floral", "Citrus"])
 - `image_urls`: `TEXT[]` (Array of S3 image URLs)
-- `comment`: `TEXT` (Nullable)
+- `comment`: `TEXT` (Nullable, max 2000 chars)
 - `created_at`: `TIMESTAMPTZ` (Default `now()`)
 
 ## Row Level Security (RLS) Policies
@@ -46,6 +47,7 @@ description: Supabase database table definitions, RLS security policies, and Swi
 - `cafes`:
   - SELECT: Public
   - INSERT: Authenticated users (`auth.role() = 'authenticated'`)
+  - UPDATE / DELETE: `auth.uid() = created_by`
 - `tasting_notes`:
   - SELECT: Public
   - INSERT / UPDATE / DELETE: `auth.uid() = user_id`
