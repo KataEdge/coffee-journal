@@ -80,12 +80,53 @@ final class SupabaseAuthRepositoryTests: XCTestCase {
         }
     }
 
-    func test_updateProfile_withAvatarData_withoutSession_throwsAuthenticationError() async {
-        let dummyImageData = "dummy image data".data(using: .utf8)
+    func test_updateProfile_withJpegAvatarData_withoutSession_throwsAuthenticationError() async {
+        let jpegData = Data([0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01])
         do {
-            _ = try await repository.updateProfile(username: "TestUser", avatarData: dummyImageData)
+            _ = try await repository.updateProfile(username: "TestUser", avatarData: jpegData)
         } catch {
             XCTAssertTrue(error is AppError)
+        }
+    }
+
+    func test_updateProfile_withPngAvatarData_withoutSession_throwsAuthenticationError() async {
+        let pngData = Data([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D])
+        do {
+            _ = try await repository.updateProfile(username: "TestUser", avatarData: pngData)
+        } catch {
+            XCTAssertTrue(error is AppError)
+        }
+    }
+
+    func test_updateProfile_withHeicAvatarData_withoutSession_throwsAuthenticationError() async {
+        let heicData = Data([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x68, 0x65, 0x69, 0x63])
+        do {
+            _ = try await repository.updateProfile(username: "TestUser", avatarData: heicData)
+        } catch {
+            XCTAssertTrue(error is AppError)
+        }
+    }
+
+    func test_updateProfile_withWebpAvatarData_withoutSession_throwsAuthenticationError() async {
+        let webpData = Data([0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50])
+        do {
+            _ = try await repository.updateProfile(username: "TestUser", avatarData: webpData)
+        } catch {
+            XCTAssertTrue(error is AppError)
+        }
+    }
+
+    func test_updateProfile_withInvalidAvatarData_throwsValidationError() async {
+        let invalidData = "not an image".data(using: .utf8)!
+        do {
+            _ = try await repository.updateProfile(username: "TestUser", avatarData: invalidData)
+            XCTFail("Expected validation error")
+        } catch {
+            guard case AppError.validationError(let msg) = error else {
+                XCTFail("Expected validationError, got \(error)")
+                return
+            }
+            XCTAssertTrue(msg.contains("未対応または不正な画像フォーマット"))
         }
     }
 
@@ -107,9 +148,36 @@ final class SupabaseAuthRepositoryTests: XCTestCase {
 
     func test_signUp_withoutBackend_throwsAuthenticationError() async {
         do {
-            _ = try await repository.signUp(email: "fake@example.com", password: "password")
+            _ = try await repository.signUp(email: "fake@example.com", password: "ValidPassword123")
         } catch {
             XCTAssertTrue(error is AppError)
+        }
+    }
+
+    func test_signUp_invalidPassword_throwsValidationError() async {
+        do {
+            _ = try await repository.signUp(email: "fake@example.com", password: "short")
+            XCTFail("Expected validation error")
+        } catch {
+            guard case AppError.validationError(let msg) = error else {
+                XCTFail("Expected validationError, got \(error)")
+                return
+            }
+            XCTAssertTrue(msg.contains("8文字以上"))
+        }
+    }
+
+    func test_updateProfile_oversizedUsername_throwsValidationError() async {
+        let longUsername = String(repeating: "U", count: 31)
+        do {
+            _ = try await repository.updateProfile(username: longUsername, avatarData: nil)
+            XCTFail("Expected validation error")
+        } catch {
+            guard case AppError.validationError(let msg) = error else {
+                XCTFail("Expected validationError, got \(error)")
+                return
+            }
+            XCTAssertTrue(msg.contains("30文字以内"))
         }
     }
 

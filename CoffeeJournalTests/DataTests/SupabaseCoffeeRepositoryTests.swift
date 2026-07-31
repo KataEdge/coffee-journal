@@ -104,4 +104,49 @@ final class SupabaseCoffeeRepositoryTests: XCTestCase {
             XCTAssertTrue(error is AppError)
         }
     }
+
+    func test_createTastingNote_oversizedDrinkName_throwsValidationError() async {
+        let oversizedName = String(repeating: "A", count: 101)
+        let note = CafeVisitNote(cafeName: "Test Cafe", drinkName: oversizedName)
+        do {
+            _ = try await repository.createTastingNote(note)
+            XCTFail("Expected validation error")
+        } catch {
+            guard case AppError.validationError(let msg) = error else {
+                XCTFail("Expected validationError, got \(error)")
+                return
+            }
+            XCTAssertTrue(msg.contains("100文字以内"))
+        }
+    }
+
+    func test_createTastingNote_oversizedComment_throwsValidationError() async {
+        let oversizedComment = String(repeating: "C", count: 2001)
+        let note = CafeVisitNote(cafeName: "Test Cafe", drinkName: "Latte", comment: oversizedComment)
+        do {
+            _ = try await repository.createTastingNote(note)
+            XCTFail("Expected validation error")
+        } catch {
+            guard case AppError.validationError(let msg) = error else {
+                XCTFail("Expected validationError, got \(error)")
+                return
+            }
+            XCTAssertTrue(msg.contains("2000文字以内"))
+        }
+    }
+
+    func test_updateTastingNote_oversizedDrinkName_throwsValidationError() async {
+        let oversizedName = String(repeating: "B", count: 105)
+        let note = CafeVisitNote(cafeName: "Test Cafe", drinkName: oversizedName)
+        do {
+            _ = try await repository.updateTastingNote(note)
+            XCTFail("Expected validation error")
+        } catch {
+            guard case AppError.validationError(let msg) = error else {
+                XCTFail("Expected validationError, got \(error)")
+                return
+            }
+            XCTAssertTrue(msg.contains("100文字以内"))
+        }
+    }
 }

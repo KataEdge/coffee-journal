@@ -10,6 +10,7 @@ final class AppErrorTests: XCTestCase {
             (.authenticationRequired, "ログインが必要です。"),
             (.authenticationError("Invalid Credentials"), "認証エラー: Invalid Credentials"),
             (.uploadFailed("S3 Error"), "画像アップロードに失敗しました: S3 Error"),
+            (.validationError("Bad input"), "入力エラー: Bad input"),
             (.invalidData, "無効なデータです。"),
             (.unknown("Crash"), "不明なエラーが発生しました: Crash")
         ]
