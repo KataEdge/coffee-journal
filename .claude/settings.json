@@ -1,4 +1,7 @@
 {
+  "env": {
+    "SUPABASE_PROJECT_REF": "ftgvlhnsptnenuwtayvk"
+  },
   "permissions": {
     "allow": [
       "Bash(swift test:*)",
